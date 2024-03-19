@@ -15,7 +15,7 @@ app.use(express.json());
 app.use(indexRoutes);
 
 app.get('/', (req, res) => {
-    return res.status(200).send("Welcome to RateX Backend");
+    return res.status(200).send("Welcome to R-World-Lite Backend");
 });
 
 app.listen(process.env.PORT, () => {
