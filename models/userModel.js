@@ -18,11 +18,11 @@ const user = new mongoose.Schema({
         default: ""
     },
     role: {
-        type: String, enum: ["SUPERADMIN", "DIRECTORS", "SALESMANAGER", "SALESEXECUTIVE", "MARKETINGMANAGER", "MARKETINGEXECUTIVE", "REVENUEMANAGER", "REVENUEEXECUTIVE", "TECHNOLOGYMANAGER", "TECHNOLOGYEXECUTIVE","CLIENT"],
-        default: "CLIENT"
+        type: String,enum:["INTERNAL", "EXTERNAL"],
+        default: "INTERNAL"
     },
     designation: {
-        type: String,
+        type: String, enum: ["SUPERADMIN", "DIRECTORS", "SALESMANAGER", "SALESEXECUTIVE", "MARKETINGMANAGER", "MARKETINGEXECUTIVE", "REVENUEMANAGER", "REVENUEEXECUTIVE", "TECHNOLOGYMANAGER", "TECHNOLOGYEXECUTIVE", "CLIENT"],
         default: ""
     },
     email: {

@@ -1,7 +1,7 @@
-import { signJwt } from '../middleware/auth.js';
+import { signJwt } from '../../middleware/auth.js';
 import bcrypt from "bcrypt"
-import ErrorHandler from '../middleware/errorHandler.js';
-import userModel from '../models/userModel.js';
+import ErrorHandler from '../../middleware/errorHandler.js';
+import userModel from '../../models/userModel.js';
 
 const login = async (req, res, next) => {
     try {
@@ -66,7 +66,7 @@ const login = async (req, res, next) => {
         });
 
     } catch (error) {
-        console.log(error)
+        console.log('error: ', error);
         return next(new ErrorHandler(error.message, 500));
     }
 }
