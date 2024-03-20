@@ -61,6 +61,10 @@ const lead = new mongoose.Schema({
         type: String,
         default: ""
     },
+    leadStatus: {
+        type: String,
+        default: ""
+    }
 
 }, {
     versionKey: false,

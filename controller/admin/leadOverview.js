@@ -6,7 +6,6 @@ const getTodayLeads = async (req, res, next) => {
     try {
         const email = req.query.email;
         const type = req.query.type;
-        
         const findUser = await userModel.findOne({ email: email });
 
         if (!findUser) {
@@ -70,6 +69,7 @@ const getTodayLeads = async (req, res, next) => {
         });
 
         const todayLeads = await leadModel.aggregate(pipeline);
+
 
         return res.status(200).json({
             status: true,

@@ -18,11 +18,11 @@ const user = new mongoose.Schema({
         default: ""
     },
     role: {
-        type: String,enum:["INTERNAL", "EXTERNAL"],
+        type: String, enum: ["INTERNAL", "EXTERNAL"],
         default: "INTERNAL"
     },
     designation: {
-        type: String, enum: ["SUPERADMIN", "DIRECTORS", "SALESMANAGER", "SALESEXECUTIVE", "MARKETINGMANAGER", "MARKETINGEXECUTIVE", "REVENUEMANAGER", "REVENUEEXECUTIVE", "TECHNOLOGYMANAGER", "TECHNOLOGYEXECUTIVE", "CLIENT"],
+        type: String, enum: ["ADMIN", "DIRECTORS", "SALES_MANAGER", "SALES_EXECUTIVE", "MARKETING_MANAGER", "MARKETING_EXECUTIVE", "REVENUE_MANAGER", "REVENUE_EXECUTIVE", "TECHNOLOGY_MANAGER", "TECHNOLOGY_EXECUTIVE", "CLIENT"],
         default: ""
     },
     email: {
@@ -49,9 +49,8 @@ const user = new mongoose.Schema({
         type: String,
         default: "ADMIN"
     },
-},
-    {
-        versionKey: false,
-    })
+}, {
+    versionKey: false,
+})
 const userModel = mongoose.model("user", user)
 export default userModel 

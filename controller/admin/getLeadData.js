@@ -221,97 +221,170 @@
 import axios from 'axios';
 import leadModel from '../../models/leadData.js';
 import ErrorHandler from '../../middleware/errorHandler.js';
+import formModel from '../../models/forms.js';
+import randomstring from 'randomstring';
 
 const getLead = async (req, res, next) => {
     try {
         const pageAccessToken = process.env.PAGE_ACCESS_TOKEN;
+        const access_token = process.env.ACCESS_TOKEN_FB;
         const pageId = process.env.PAGE_ID;
         let url = `https://graph.facebook.com/v19.0/${pageId}/leadgen_forms`;
 
         const allLeads = [];
-        const leadIdSet = new Set();
 
-        let response = await axios.get(url, { params: { fields: 'id,name,leads_count,leads,created_time,status', access_token: pageAccessToken } });
+        let response = await axios.get(url, { params: { fields: 'id,name,leads_count,created_time,status', access_token: pageAccessToken } });
 
         if (!response.status === 200 || !response.data || response.data.error) {
-            throw new Error(`Failed to fetch leads: ${response.data.error?.message || 'Unknown error'}`);
+            throw new Error(`Failed to fetch : ${response.data.error?.message || 'Unknown error'}`);
         }
 
-        const data = await Promise.all(response.data.data.map(async (item) => {
-            let nextUrl = item?.leads?.paging?.next;
-            while (nextUrl) {
-                const response = await axios.get(nextUrl);
-                if (response.data.data) {
-                    response.data.data.forEach(leadData => {
-                        console.log('leadData: ', leadData);
-                        if (!leadIdSet.has(leadData.id)) {
-                            leadIdSet.add(leadData.id);
-                            allLeads.push(leadData);
-                        }
+        const totalForm = response?.data;
+
+        totalForm?.data?.map(async (item) => {
+            const findForm = await formModel.findOne({ formId: item?.id });
+
+            if (findForm) {
+                await formModel.updateMany({ formId: item?.id }, { $set: { leads_count: item?.leads_count, extractionDate: new Date() } })
+            } else {
+
+                let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
+                let response = await axios.get(url, { params: { fields: 'field_data', access_token: access_token } });
+
+                const fieldData = response?.data;
+                const fields = fieldData?.data[0];
+
+                const newForm = new formModel({
+                    formId: item?.id,
+                    formName: item?.name,
+                    created_time: item?.created_time,
+                    leads_count: item?.leads_count,
+                    status: item?.status,
+                    fields: fields?.field_data?.map(field => ({
+                        fieldName: field?.name,
+                        fieldId: randomstring.generate(6)
+                    }))
+                });
+                await newForm.save();
+            }
+        });
+
+        await Promise.all(totalForm?.data?.map(async (item) => {
+            let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
+            let response = await axios.get(url, { params: { access_token: access_token } });
+
+            const fieldData = response?.data;
+
+            const promises = fieldData?.data?.flatMap(leadData => {
+                return leadData?.field_data?.map(async field => {
+                    let fullName = field?.name === 'full_name' ? field?.values[0] || '' : '';
+                    let city = field?.name === 'city' ? field?.values[0] || '' : '';
+                    let rooms = field?.name === 'number_of_rooms_in_your_hotel?' ? field?.values[0] || '' : '';
+                    rooms = field?.name === 'total_rooms_in_hotel' ? field?.values[0] || '' : '';
+                    let phoneNumber = field?.name === 'phone_number' ? field?.values[0] || '' : '';
+                    let email = field?.name === 'email' ? field?.values[0] || '' : '';
+                    let hotelName = field?.name === "your_hotel's_name" ? field?.values[0] || '' : '';
+                    hotelName = field?.name === "your_hotel_name" ? field?.values[0] || '' : '';
+                    let channel_manager = field?.name === 'using_channel_manager_?' ? field?.values[0] || '' : '';
+                    let companyName = field?.name === 'company_name' ? field?.values[0] || '' : '';
+
+                    const newLead = new leadModel({
+                        formId: item?.id,
+                        formName: item?.name,
+                        leadId: leadData?.id,
+                        created_time: leadData?.created_time,
+                        leadCount: item?.leads_count,
+                        fullName: fullName,
+                        city: city,
+                        rooms: rooms,
+                        phoneNumber: phoneNumber,
+                        email: email,
+                        hotelName: hotelName,
+                        channel_manager: channel_manager,
+                        companyName: companyName,
+                        leadOrigin: "Lead Ads",
+                        leadSource: "FB Lead Ads",
                     });
-                }
-                nextUrl = response.data.paging?.next;
-            }
-            if (!leadIdSet.has(item.id)) {
-                leadIdSet.add(item.id);
-                allLeads.push(item);
-            }
-            return item;
+                    return newLead.save(); 
+                });
+            });
+
+            await Promise.all(promises);
         }));
 
-        const batchSize = 100;
-        const batches = [];
 
-        for (let i = 0; i < allLeads.length; i += batchSize) {
-            const batch = allLeads.slice(i, i + batchSize);
-            batches.push(Promise.all(batch.flatMap(async (item) => {
-                if (item?.leads?.data) {
-                    return Promise.all(item.leads.data.map(async (leadData) => {
-                        const {
-                            full_name = '',
-                            city = '',
-                            number_of_rooms_in_your_hotel = '',
-                            total_rooms_in_hotel = '',
-                            phone_number = '',
-                            email = '',
-                            using_channel_manager = '',
-                            company_name = '',
-                        } = Object.fromEntries(
-                            leadData?.field_data?.map(({ name, values }) => [name, values[0] || '']) || []
-                        );
 
-                        const your_hotel_name = leadData?.field_data?.find(data => data?.name === "your_hotel_name")?.values[0] || '';
-                        const your_hotel_name_alt = leadData?.field_data?.find(data => data?.name === "your_hotel's_name")?.values[0] || '';
-                        const hotelName = your_hotel_name || your_hotel_name_alt;
+        // const fetchDataFromNextUrl = async (nextUrl) => {
+        //     while (nextUrl) {
+        //         const response = await axios.get(nextUrl);
+        //         if (response.data.data) {
+        //             response.data.data.forEach(leadData => {3
+        //                 if (!leadIdSet.has(leadData.id)) {
+        //                     leadIdSet.add(leadData.id);
+        //                     allLeads.push(leadData);
+        //                 }
+        //             });
+        //         }
+        //         nextUrl = response.data.paging?.next;
+        //     }
+        // };
 
-                        const rooms = number_of_rooms_in_your_hotel || total_rooms_in_hotel;
+        // await Promise.all(response.data.data.map(async (item) => {
+        //     let nextUrl = item?.leads?.paging?.next;
+        //     await fetchDataFromNextUrl(nextUrl);
+        //     if (!leadIdSet.has(item.id)) {
+        //         leadIdSet.add(item.id);
+        //         allLeads.push(item);
+        //     }
+        //     return item;
+        // }));
 
-                        const leadDataToSave = new leadModel({
-                            formId: item?.id,
-                            formName: item?.name,
-                            leadId: leadData?.id,
-                            created_time: leadData?.created_time,
-                            leadCount: item?.leads_count,
-                            fullName: full_name,
-                            city,
-                            rooms,
-                            phoneNumber: phone_number,
-                            email,
-                            hotelName,
-                            channel_manager: using_channel_manager,
-                            companyName: company_name,
-                            leadOrigin: "Lead Ads",
-                            leadSource: "FB Lead Ads",
-                        });
+        // const data = await Promise.all(allLeads.flatMap(async (item) => {
+        //     if (item?.leads?.data) {
+        //         return Promise.all(item.leads.data.map(async (leadData) => {
+        //             const {
+        //                 full_name = '',
+        //                 city = '',
+        //                 number_of_rooms_in_your_hotel = '',
+        //                 total_rooms_in_hotel = '',
+        //                 phone_number = '',
+        //                 email = '',
+        //                 using_channel_manager = '',
+        //                 company_name = '',
+        //             } = Object.fromEntries(
+        //                 leadData?.field_data?.map(({ name, values }) => [name, values[0] || '']) || []
+        //             );
 
-                        return leadDataToSave.save();
-                    }));
-                }
-                return [];
-            })));
-        }
+        //             const your_hotel_name = leadData?.field_data?.find(data => data?.name === "your_hotel_name")?.values[0] || '';
+        //             const your_hotel_name_alt = leadData?.field_data?.find(data => data?.name === "your_hotel's_name")?.values[0] || '';
+        //             const hotelName = your_hotel_name || your_hotel_name_alt;
 
-        await Promise.all(batches);
+        //             const rooms = number_of_rooms_in_your_hotel || total_rooms_in_hotel;
+
+        //             const leadDataToSave = new leadModel({
+        //                 formId: item?.id,
+        //                 formName: item?.name,
+        //                 leadId: leadData?.id,
+        //                 created_time: leadData?.created_time,
+        //                 leadCount: item?.leads_count,
+        //                 fullName: full_name,
+        //                 city,
+        //                 rooms,
+        //                 phoneNumber: phone_number,
+        //                 email,
+        //                 hotelName,
+        //                 channel_manager: using_channel_manager,
+        //                 companyName: company_name,
+        //                 leadOrigin: "Lead Ads",
+        //                 leadSource: "FB Lead Ads",
+        //                 status: "New Lead"
+        //             });
+
+        //             return leadDataToSave.save();
+        //         }));
+        //     }
+        //     return [];
+        // }));
 
         return res.status(200).json({
             status: true,
