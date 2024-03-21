@@ -270,50 +270,71 @@ const getLead = async (req, res, next) => {
         });
 
         await Promise.all(totalForm?.data?.map(async (item) => {
+
             let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
-            let response = await axios.get(url, { params: { access_token: access_token } });
+            const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time, id", access_token: access_token } });
 
             const fieldData = response?.data;
+            let LeadData = fieldData?.data
 
-            const promises = fieldData?.data?.flatMap(leadData => {
-                return leadData?.field_data?.map(async field => {
-                    let fullName = field?.name === 'full_name' ? field?.values[0] || '' : '';
-                    let city = field?.name === 'city' ? field?.values[0] || '' : '';
-                    let rooms = field?.name === 'number_of_rooms_in_your_hotel?' ? field?.values[0] || '' : '';
-                    rooms = field?.name === 'total_rooms_in_hotel' ? field?.values[0] || '' : '';
-                    let phoneNumber = field?.name === 'phone_number' ? field?.values[0] || '' : '';
-                    let email = field?.name === 'email' ? field?.values[0] || '' : '';
-                    let hotelName = field?.name === "your_hotel's_name" ? field?.values[0] || '' : '';
-                    hotelName = field?.name === "your_hotel_name" ? field?.values[0] || '' : '';
-                    let channel_manager = field?.name === 'using_channel_manager_?' ? field?.values[0] || '' : '';
-                    let companyName = field?.name === 'company_name' ? field?.values[0] || '' : '';
+            if (LeadData?.length > 0) {
+                allLeads.push(LeadData)
+            }
 
-                    const newLead = new leadModel({
-                        formId: item?.id,
-                        formName: item?.name,
-                        leadId: leadData?.id,
-                        created_time: leadData?.created_time,
-                        leadCount: item?.leads_count,
-                        fullName: fullName,
-                        city: city,
-                        rooms: rooms,
-                        phoneNumber: phoneNumber,
-                        email: email,
-                        hotelName: hotelName,
-                        channel_manager: channel_manager,
-                        companyName: companyName,
-                        leadOrigin: "Lead Ads",
-                        leadSource: "FB Lead Ads",
-                    });
-                    return newLead.save(); 
-                });
-            });
-
-            await Promise.all(promises);
+            let next = fieldData?.paging?.next;
+            while (next) {
+                const response = await axios.get(next);
+                const fieldData = response?.data;
+                LeadData = fieldData?.data
+                allLeads.push(LeadData)
+                next = fieldData?.paging?.next;
+            }
         }));
 
+        async function processLeads(allLeads) {
+            await Promise.all(allLeads.map(async leads => {
+                await Promise.all(leads.map(async leadData => {
+                    try {
+                        const formDetails = await formModel.findOne({ formId: +leadData?.form_id });
+                        if (!formDetails) {
+                            console.error(`Form details not found for form ID: ${leadData.form_id}`);
+                            return;
+                        }
 
+                        const fieldsWithIds = leadData?.field_data?.map(field => {
+                            const fieldInForm = formDetails?.fields?.find(f => f.fieldName === field?.name);
+                            return {
+                                fieldName: field?.name,
+                                fieldId: fieldInForm ? fieldInForm?.fieldId : '',
+                                fieldValue: field?.values[0]
+                            };
+                        });
 
+                        const leadObject = {
+                            formId: leadData?.form_id,
+                            leadId: +leadData?.id,
+                            created_time: leadData?.created_time,
+                            data: fieldsWithIds?.map(field => ({
+                                fieldName: field?.fieldName,
+                                fieldId: field?.fieldId,
+                                fieldValue: field?.fieldValue || ''
+                            })),
+                            leadOrigin: "Lead Ads",
+                            leadSource: "FB Lead Ads",
+                            leadStatus: "New Lead"
+                        };
+
+                        const newLead = new leadModel(leadObject);
+                        await newLead.save();
+                        console.log('Lead saved successfully:', newLead);
+                    } catch (error) {
+                        console.error('Error processing lead:', error);
+                    }
+                }));
+            }));
+        }
+
+        processLeads(allLeads);
         // const fetchDataFromNextUrl = async (nextUrl) => {
         //     while (nextUrl) {
         //         const response = await axios.get(nextUrl);

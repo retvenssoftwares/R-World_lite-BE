@@ -18,7 +18,6 @@ const login = async (req, res, next) => {
         }
 
         let findUser = await userModel.findOne({ email }).lean();
-        console.log('findUser: ', findUser);
 
         if (!findUser) {
             return res.status(404).json({
