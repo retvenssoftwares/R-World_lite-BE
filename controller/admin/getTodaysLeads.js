@@ -87,22 +87,42 @@ const getTodayLeads = async (req, res, next) => {
                 }
             },
             {
+                $addFields: {
+                    isFavourite: {
+                        $cond: {
+                            if: { $ne: [{ $size: "$favLead" }, 0] },
+                            then: true,
+                            else: false
+                        }
+                    }
+                }
+            },
+            {
                 $group: {
-                    _id:"$leadId",
-                    
+                    _id: "$leadId",
+                    formId: { $first: "$formData.formId" },
+                    formName: { $first: "$formData.formName" },
+                    leadId: { $first: "$leadId" },
+                    data: { $first: "$data" },
+                    created_time: { $first: "$created_time" },
+                    leadOrigin: { $first: "$leadOrigin" },
+                    leadSource: { $first: "$leadSource" },
+                    leadStatus: { $first: "$leadStatus" },
+                    isFavourite: { $first: "$isFavourite" }
                 }
             },
             {
                 $project: {
                     _id: 0,
-                    formId: '$formData.formId',
-                    formName: '$formData.formName',
+                    formId: 1,
+                    formName: 1,
                     leadId: 1,
                     data: 1,
                     created_time: 1,
                     leadOrigin: 1,
                     leadSource: 1,
                     leadStatus: 1,
+                    isFavourite: 1
                 }
             },
             {
