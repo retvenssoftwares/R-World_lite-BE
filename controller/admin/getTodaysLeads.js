@@ -4,14 +4,14 @@ import leadModel from '../../models/leadData.js'
 
 const getTodayLeads = async (req, res, next) => {
     try {
-        const email = req.query.email;
+        const userId = req.authData.userId;
         let today = req.query.today;
 
         const pageSize = 10;
         const currentPage = parseInt(req.query.page) || 1;
         const skip = (currentPage - 1) * pageSize;
 
-        const findUser = await userModel.findOne({ email: email });
+        const findUser = await userModel.findOne({ userId: userId });
 
         if (!findUser) {
             return res.status(404).json({
