@@ -8,9 +8,7 @@ import leadStatusTrack from "../../models/leadStatusTracker.js";
 const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
-        console.log('userId: ', userId);
         const leadId = +req.query.leadId
-        console.log('leadId: ', leadId);
         const { owner, leadStatus, taskStatus, title, priority, description, activity } = req.body
 
         if (!userId && !leadId) {

@@ -66,7 +66,7 @@ const getNotes = async (req, res, next) => {
             status: true,
             code: 200,
             message: "Notes history fetched successfully",
-            data: findNote || ""
+            data: findNote
         });
 
     } catch (error) {
