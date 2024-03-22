@@ -1,8 +1,8 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
-import leadStatusTrack from "../../models/leadStatusTracker.js";
+import notesModel from "../../models/notes.js";
 
-const getActivity = async (req, res, next) => {
+const getNotes = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
@@ -24,7 +24,7 @@ const getActivity = async (req, res, next) => {
             });
         }
 
-        const findLead = await leadStatusTrack.aggregate([
+        const findNote = await notesModel.aggregate([
             {
                 $match: {
                     leadId: leadId
@@ -32,14 +32,14 @@ const getActivity = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    path: "$leadStatus",
+                    path: "$notes",
                     preserveNullAndEmptyArrays: true
                 }
             },
             {
                 $lookup: {
                     from: "users",
-                    localField: "leadStatus.owner",
+                    localField: "notes.addedBy",
                     foreignField: "userId",
                     as: "userDetails"
                 }
@@ -54,18 +54,19 @@ const getActivity = async (req, res, next) => {
                 $project: {
                     _id: 0,
                     leadId: 1,
-                    activity:"$leadStatus.activity",
-                    time:"$leadStatus.time",
-                    ownerName: "$userDetails.firstName",
+                    noteId: 1,
+                    notes: "$notes.notes",
+                    time: "$notes.time",
+                    addedBy: "$userDetails.firstName",
                 }
             }
-        ]);
+        ])
 
         return res.status(200).json({
             status: true,
             code: 200,
-            message: "Activity history fetched successfully",
-            data: findLead || ""
+            message: "Notes history fetched successfully",
+            data: findNote || ""
         });
 
     } catch (error) {
@@ -74,4 +75,4 @@ const getActivity = async (req, res, next) => {
     }
 }
 
-export default getActivity;
+export default getNotes;

@@ -12,6 +12,7 @@ import leadsOverview from '../controller/admin/leadsOverview.js';
 import getLeadDetails from '../controller/admin/getLeadDetails.js';
 import addNotes from '../controller/admin/addNotes.js';
 import getActivity from '../controller/admin/getActivity.js';
+import getNotes from '../controller/admin/getNotes.js';
 
 router.post('/login', login);
 router.get('/getLeadDataFromFB', getLeadDataFromFB);
@@ -22,5 +23,6 @@ router.get('/leadsOverview', verifyJwt, leadsOverview);
 router.get('/getLeadDetails', verifyJwt, getLeadDetails);
 router.get('/addNotes', verifyJwt, addNotes);
 router.get('/getActivity', verifyJwt, getActivity);
+router.get('/getNotes', verifyJwt, getNotes);
 
 export default router;

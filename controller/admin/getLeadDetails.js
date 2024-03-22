@@ -99,14 +99,14 @@ const getLeadDetails = async (req, res, next) => {
                     formName: "$formDetails.formName",
                     modifiedBy: {
                         $cond: {
-                            if: { $eq: [{ $type: "$userDetails" }, "missing"] },
+                            if: { $eq: [{ $size: "$userDetails" }, 0] },
                             then: "",
                             else: { $arrayElemAt: ["$userDetails.firstName", 0] }
                         }
                     },
-                    userDetail: {
+                    leadOwner: {
                         $cond: {
-                            if: { $eq: [{ $type: "$userDetail" }, "missing"] },
+                            if: { $eq: [{ $size: "$userDetail" }, 0] },
                             then: "",
                             else: { $arrayElemAt: ["$userDetail.firstName", 0] }
                         }
