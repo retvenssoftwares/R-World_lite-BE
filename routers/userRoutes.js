@@ -4,15 +4,19 @@ const router = express.Router();
 import { verifyJwt } from '../middleware/auth.js';
 
 import login from '../controller/admin/login.js';
-import getLeadData from '../controller/admin/getLeadData.js'
+import getLeadDataFromFB from '../controller/admin/getLeadDataFromFB.js'
 import getTodayLeads from '../controller/admin/getTodaysLeads.js';
 import leadStatus from "../controller/admin/changeLeadStatus.js"
 import addToFav from '../controller/admin/addToFav.js';
+import leadsOverview from '../controller/admin/leadsOverview.js';
+import getLeadDetails from '../controller/admin/getLeadDetails.js';
 
 router.post('/login', login);
-router.get('/getLeadData', getLeadData);
+router.get('/getLeadDataFromFB', getLeadDataFromFB);
 router.get('/getTodayLeads', verifyJwt, getTodayLeads);
 router.post('/leadStatus', verifyJwt, leadStatus);
 router.post('/addToFav', verifyJwt, addToFav);
+router.get('/leadsOverview', verifyJwt, leadsOverview);
+router.get('/getLeadDetails', verifyJwt, getLeadDetails);
 
 export default router;

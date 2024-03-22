@@ -7,7 +7,7 @@ const getTodayLeads = async (req, res, next) => {
         const userId = req.authData.userId;
         let today = req.query.today;
 
-        const pageSize = 10;
+        const pageSize = parseInt(req.query.pageSize) || 10;
         const currentPage = parseInt(req.query.page) || 1;
         const skip = (currentPage - 1) * pageSize;
 
@@ -131,7 +131,6 @@ const getTodayLeads = async (req, res, next) => {
                 }
             }
         );
-
 
         const todayLeads = await leadModel.aggregate(pipeline);
 

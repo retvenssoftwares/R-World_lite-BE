@@ -2,12 +2,12 @@ import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
 import leadModel from '../../models/leadData.js'
 
-const getTodayLeads = async (req, res, next) => {
+const leadsOverview = async (req, res, next) => {
     try {
 
-        const email = req.query.email;
+        const userId = req.authData.userId;
 
-        const findUser = await userModel.findOne({ email: email });
+        const findUser = await userModel.findOne({ userId: userId });
 
         if (!findUser) {
             return res.status(404).json({
@@ -25,29 +25,79 @@ const getTodayLeads = async (req, res, next) => {
 
         const pipeline = [];
 
-        pipeline.push({
-            $match: {
-                created_time: {
-                    $gte: todayStart.toISOString(),
-                    $lte: todayEnd.toISOString()
+        pipeline.push(
+            {
+                $match: {
+                    created_time: {
+                        $gte: todayStart.toISOString(),
+                        $lte: todayEnd.toISOString()
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: 0,
+                    newLeads: {
+                        $sum: {
+                            $cond: {
+                                if: { $eq: ["$leadStatus", "New Lead"] },
+                                then: 1,
+                                else: 0
+                            }
+                        }
+                    },
+                    activeLeads: {
+                        $sum: {
+                            $cond: {
+                                if: {
+                                    $in: [
+                                        "$leadStatus",
+                                        ["New Lead", "Customer", "Not-interested", "Not Qualified", "Invalid", "Wrong Lead"]
+                                    ]
+                                },
+                                then: 0,
+                                else: 1
+                            }
+                        }
+                    },
+                    qualifiedLeads: {
+                        $sum: {
+                            $cond: {
+                                if: { $eq: ["$leadStatus", "Qualification"] },
+                                then: 1,
+                                else: 0
+                            }
+                        }
+                    },
+                    followUpLeads: {
+                        $sum: {
+                            $cond: {
+                                if: { $eq: ["$leadStatus", "Follow Up"] },
+                                then: 1,
+                                else: 0
+                            }
+                        }
+                    },
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    newLeads: 1,
+                    activeLeads: 1,
+                    qualifiedLeads: 1,
+                    followUpLeads: 1,
                 }
             }
-        });
+        );
 
-        pipeline.push({
-            $sort: {
-                created_time: -1
-            }
-        });
-
-        const todayLeads = await leadModel.aggregate(pipeline);
-
+        const overview = await leadModel.aggregate(pipeline);
 
         return res.status(200).json({
             status: true,
             code: 200,
-            message: "Today's leads retrieved successfully",
-            data: todayLeads,
+            message: "Leads Overview",
+            data: overview[0],
         });
     } catch (error) {
         console.log('error: ', error);
@@ -55,4 +105,4 @@ const getTodayLeads = async (req, res, next) => {
     }
 }
 
-export default getTodayLeads;
+export default leadsOverview;

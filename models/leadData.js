@@ -13,18 +13,18 @@ const lead = new mongoose.Schema({
         type: String,
         default: ""
     },
-    data:[{
-        fieldName:{
-            type:String,
-            default:""
+    data: [{
+        fieldName: {
+            type: String,
+            default: ""
         },
-        fieldId:{
-            type:String,
-            default:""
+        fieldId: {
+            type: String,
+            default: ""
         },
-        fieldValue:{
-            type:String,
-            default:""
+        fieldValue: {
+            type: String,
+            default: ""
         }
     }],
     leadOrigin: {
@@ -38,8 +38,11 @@ const lead = new mongoose.Schema({
     leadStatus: {
         type: String,
         default: ""
+    },
+    leadOwner: {
+        type: String,
+        default: ""
     }
-
 }, {
     versionKey: false,
 })
