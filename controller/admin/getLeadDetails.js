@@ -80,23 +80,11 @@ const getLeadDetails = async (req, res, next) => {
                 }
             },
             {
-                $unwind: {
-                    path: "$userDetails",
-                    preserveNullAndEmptyArrays: true
-                }
-            },
-            {
                 $lookup: {
                     from: "users",
                     localField: "leadOwner",
                     foreignField: "userId",
                     as: "userDetail"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$userDetail",
-                    preserveNullAndEmptyArrays: true
                 }
             },
             {

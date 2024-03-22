@@ -8,7 +8,9 @@ import leadStatusTrack from "../../models/leadStatusTracker.js";
 const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
+        console.log('userId: ', userId);
         const leadId = +req.query.leadId
+        console.log('leadId: ', leadId);
         const { owner, leadStatus, taskStatus, title, priority, description, activity } = req.body
 
         if (!userId && !leadId) {
@@ -27,7 +29,7 @@ const leadStatus = async (req, res, next) => {
                 message: "Invalid Credentials",
             });
         }
-        const date = new Date();
+        const date = new Date().toISOString();
 
         if (owner) {
             await leadModel.updateMany({ leadId: leadId }, { $set: { owner: owner, modifiedOn: date, modifiedBy: userId } })
@@ -47,12 +49,20 @@ const leadStatus = async (req, res, next) => {
                     }]
                 })
                 await newLeadStatus.save();
+            } else {
+                const leadStatusObject = {
+                    owner: userId,
+                    activity: activity,
+                    time: date,
+                }
+                findLeadStatus.leadStatus.unshift(leadStatusObject);
+                await findLeadStatus.save();
             }
         }
 
         if (owner || leadStatus) {
             const newTask = new taskModel({
-                taskId: Randomstring.generate(8),
+                taskId: Randomstring.generate({ charset: 'numeric', length: 8 }),
                 leadId: leadId,
                 assignedTo: owner || userId,
                 assignedBy: userId,

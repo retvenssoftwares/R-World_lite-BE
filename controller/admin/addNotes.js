@@ -1,12 +1,13 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
 import notesModel from "../../models/notes.js";
+import Randomstring from "randomstring";
 
 const addNotes = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const notes = +req.body.notes
+        const notes = req.body.notes
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -24,16 +25,17 @@ const addNotes = async (req, res, next) => {
                 message: "Invalid Credentials",
             });
         }
-        const findnote = await notesModel.findOne({ noteId: noteId });
+        const findNote = await notesModel.findOne({ leadId: leadId });
 
-        if (findnote) {
-            notesObject = {
+        if (findNote) {
+            const notesObject = {
+                noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
                 notes: notes,
                 addedBy: userId,
-                time: new Date()
+                time: new Date().toISOString()
             }
-            findnote.notes.unshift(notesObject);
-            await findnote.save()
+            findNote.notes.unshift(notesObject);
+            await findNote.save()
             return res.status(200).json({
                 status: true,
                 code: 200,
@@ -43,9 +45,10 @@ const addNotes = async (req, res, next) => {
             const newNote = new notesModel({
                 leadId: leadId,
                 notes: [{
+                    noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
                     notes: notes,
                     addedBy: userId,
-                    time: new Date()
+                    time: new Date().toISOString()
                 }]
             })
             await newNote.save()

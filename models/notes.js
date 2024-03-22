@@ -6,6 +6,10 @@ const notes = new mongoose.Schema({
         default: 0
     },
     notes: [{
+        noteId: {
+            type: Number,
+            default: 0
+        },
         notes: {
             type: String,
             default: ""
