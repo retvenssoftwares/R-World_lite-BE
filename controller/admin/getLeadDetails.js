@@ -35,8 +35,19 @@ const getLeadDetails = async (req, res, next) => {
             {
                 $lookup: {
                     from: "favourites",
-                    localField: "leadId",
-                    foreignField: "leadId",
+                    let: { leadId: "$leadId", userId: "$userId" },
+                    pipeline: [
+                        {
+                            $match: {
+                                $expr: {
+                                    $and: [
+                                        { $eq: ["$leadId", "$$leadId"] },
+                                        { $eq: ["$userId", "$$userId"] }
+                                    ]
+                                }
+                            }
+                        }
+                    ],
                     as: "favLead"
                 }
             },
@@ -75,10 +86,24 @@ const getLeadDetails = async (req, res, next) => {
                 }
             },
             {
+                $lookup: {
+                    from: "users",
+                    localField: "leadOwner",
+                    foreignField: "userId",
+                    as: "userDetail"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$userDetail",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
                 $addFields: {
                     isFavourite: {
                         $cond: {
-                            if: { $eq: ["$favLead.userId", userId] },
+                            if: { $ne: ["$favLead", null] },
                             then: true,
                             else: false
                         }
@@ -89,6 +114,13 @@ const getLeadDetails = async (req, res, next) => {
                             if: { $eq: [{ $type: "$userDetails" }, "missing"] },
                             then: "",
                             else: { $arrayElemAt: ["$userDetails.firstName", 0] }
+                        }
+                    },
+                    userDetail: {
+                        $cond: {
+                            if: { $eq: [{ $type: "$userDetail" }, "missing"] },
+                            then: "",
+                            else: { $arrayElemAt: ["$userDetail.firstName", 0] }
                         }
                     }
                 }
@@ -108,7 +140,6 @@ const getLeadDetails = async (req, res, next) => {
                     isFavourite: 1,
                     modifiedBy: 1,
                     modifiedOn: 1,
-                    isFavourite: 1,
                     closingDate: 1,
                     amountClosed: 1
                 }
