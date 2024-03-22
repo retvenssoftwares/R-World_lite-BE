@@ -36,19 +36,6 @@ const leadStatus = async (req, res, next) => {
         if (leadStatus) {
             await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus, modifiedOn: date, modifiedBy: userId } });
 
-            const newTask = new taskModel({
-                taskId: Randomstring.generate(8),
-                leadId: leadId,
-                assignedTo: owner || userId,
-                assignedBy: userId,
-                title: title,
-                description: description,
-                modifiedOn: date,
-                taskStatus: taskStatus,
-                priority: priority,
-            })
-            await newTask.save();
-
             const findLeadStatus = await leadStatusTrack.findOne({ leadId: leadId });
             if (!findLeadStatus) {
                 const newLeadStatus = new leadStatusTrack({
@@ -61,6 +48,21 @@ const leadStatus = async (req, res, next) => {
                 })
                 await newLeadStatus.save();
             }
+        }
+
+        if (owner || leadStatus) {
+            const newTask = new taskModel({
+                taskId: Randomstring.generate(8),
+                leadId: leadId,
+                assignedTo: owner || userId,
+                assignedBy: userId,
+                title: title,
+                description: description,
+                modifiedOn: date,
+                taskStatus: taskStatus,
+                priority: priority,
+            })
+            await newTask.save();
         }
 
         const updatedLead = await leadModel.findOne({ leadId: leadId });

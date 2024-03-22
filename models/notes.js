@@ -5,14 +5,20 @@ const notes = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    notes: {
-        type: String,
-        default: ""
-    },
-    time: {
-        type: String,
-        default: ""
-    }
+    notes: [{
+        notes: {
+            type: String,
+            default: ""
+        },
+        addedBy: {
+            type: String,
+            default: ""
+        },
+        time: {
+            type: String,
+            default: ""
+        }
+    }],
 }, {
     versionKey: false
 })
