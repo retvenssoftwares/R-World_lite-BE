@@ -334,11 +334,11 @@ const getLead = async (req, res, next) => {
 
             // console.log("formattedDate", formattedDate);
 
-            // if (findForm) {
-            //     await formModel.updateMany({ formId: item?.id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
-            // } else {
+            if (findForm) {
+                // await formModel.updateMany({ formId: item?.id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
+            } else {
 
-            if (!findForm) {
+                // if (!findForm) {
                 const newForm = new formModel({
                     formId: item?.id,
                     formName: item?.name,
@@ -359,16 +359,16 @@ const getLead = async (req, res, next) => {
 
             const findForm = await formModel.findOne({ formId: item?.id });
             const extractionDate = findForm?.extractionDate
-            console.log('extractionDate: ', extractionDate);
             let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
-            const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time, id", access_token: access_token, filtering: `[{"field":"created_time","operator":"GREATER_THAN_EQUAL","value":"${extractionDate}"}]` } });
-            console.log('response: ', response.data);
+            const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time, id", access_token: access_token } });
 
             const fieldData = response?.data;
             let LeadData = fieldData?.data
 
+            const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
+
             if (LeadData?.length > 0) {
-                allLeads.push(LeadData)
+                allLeads.push(filteredLeads)
             }
 
             let next = fieldData?.paging?.next;
@@ -376,10 +376,12 @@ const getLead = async (req, res, next) => {
                 const response = await axios.get(next);
                 const fieldData = response?.data;
                 LeadData = fieldData?.data
-                allLeads.push(LeadData)
+                const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
+                allLeads.push(filteredLeads)
                 next = fieldData?.paging?.next;
             }
         }));
+
 
         async function processLeads(allLeads) {
             await Promise.all(allLeads.map(async leads => {
@@ -391,34 +393,41 @@ const getLead = async (req, res, next) => {
                             return;
                         }
                         // await formModel.updateMany({ formId: leadData?.form_id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
+                        const findLead = await leadModel.findOne({ leadId: leadData?.id });
+                        console.log('findLead: ', findLead);
 
-                        const fieldsWithIds = leadData?.field_data?.map(field => {
-                            const fieldInForm = formDetails?.fields?.find(f => f.fieldName === field?.name);
-                            return {
-                                fieldName: field?.name,
-                                fieldId: fieldInForm ? fieldInForm?.fieldId : '',
-                                fieldValue: field?.values[0]
+                        if (!findLead) {
+
+                            const fieldsWithIds = leadData?.field_data?.map(field => {
+                                const fieldInForm = formDetails?.fields?.find(f => f.fieldName === field?.name);
+                                return {
+                                    fieldName: field?.name,
+                                    fieldId: fieldInForm ? fieldInForm?.fieldId : '',
+                                    fieldValue: field?.values[0]
+                                };
+                            });
+
+                            const leadObject = {
+                                formId: leadData?.form_id,
+                                leadId: +leadData?.id,
+                                created_time: leadData?.created_time,
+                                data: fieldsWithIds?.map(field => ({
+                                    fieldName: field?.fieldName,
+                                    fieldId: field?.fieldId,
+                                    fieldValue: field?.fieldValue || ''
+                                })),
+                                leadOrigin: "Lead Ads",
+                                leadSource: "FB Lead Ads",
+                                leadStatus: "New Lead",
+                                leadOwner: "",
+                                modifiedOn: "",
+                                modifiedBy: ""
                             };
-                        });
 
-                        const leadObject = {
-                            formId: leadData?.form_id,
-                            leadId: +leadData?.id,
-                            created_time: leadData?.created_time,
-                            data: fieldsWithIds?.map(field => ({
-                                fieldName: field?.fieldName,
-                                fieldId: field?.fieldId,
-                                fieldValue: field?.fieldValue || ''
-                            })),
-                            leadOrigin: "Lead Ads",
-                            leadSource: "FB Lead Ads",
-                            leadStatus: "New Lead"
-                        };
-
-                        const newLead = new leadModel(leadObject);
-                        console.log('newLead: ', newLead);
-                        // await newLead.save();
-                        console.log('Lead saved successfully:', newLead);
+                            const newLead = new leadModel(leadObject);
+                            // await newLead.save();
+                            console.log('Lead saved successfully:', newLead);
+                        }
                     } catch (error) {
                         console.error('Error processing lead:', error);
                     }
@@ -427,7 +436,6 @@ const getLead = async (req, res, next) => {
         }
 
         processLeads(allLeads);
-        console.log('allLeads: ', allLeads);
 
         return res.status(200).json({
             status: true,

@@ -42,6 +42,14 @@ const lead = new mongoose.Schema({
     leadOwner: {
         type: String,
         default: ""
+    },
+    modifiedOn: {
+        type: String,
+        default: ""
+    },
+    modifiedBy: {
+        type: String,
+        default: ""
     }
 }, {
     versionKey: false,

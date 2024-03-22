@@ -25,7 +25,16 @@ const addToFav = async (req, res, next) => {
                 message: "provide lead Id",
             });
         }
-        
+        const findFAV = await favouriteModel.findOne({ leadId: leadId })
+
+        if (findFAV?.userId === userId) {
+            return res.status(200).json({
+                status: true,
+                code: 200,
+                message: "Already in favourite",
+            });
+        }
+
         const addToFav = new favouriteModel({
             userId: userId,
             leadId: leadId,

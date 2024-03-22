@@ -3,6 +3,7 @@ import dotenv from 'dotenv';
 import cors from 'cors'
 import indexRoutes from './routers/indexRouter.js'
 import './utils/db.js';
+import "./controller/admin/apiSchedule.js"
 dotenv.config();
 const app = express();
 

@@ -31,7 +31,26 @@ const getLeadDetails = async (req, res, next) => {
                 $match: {
                     leadId: leadId,
                 }
-            }
+            },
+            {
+                $lookup: {
+                    from: "favourites",
+                    localField: "leadId",
+                    foreignField: "leadId",
+                    as: "favLead"
+                }
+            },
+            {
+                $addFields: {
+                    isFavourite: {
+                        $cond: {
+                            if: { $ne: [{ $size: "$favLead" }, 0] },
+                            then: true,
+                            else: false
+                        }
+                    }
+                }
+            },
         );
 
         const leadsDetails = await leadModel.aggregate(pipeline);
