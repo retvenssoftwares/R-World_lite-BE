@@ -21,7 +21,7 @@ router.patch('/changeLeadStatus', verifyJwt, changeLeadStatus);
 router.post('/addToFav', verifyJwt, addToFav);
 router.get('/leadsOverview', verifyJwt, leadsOverview);
 router.get('/getLeadDetails', verifyJwt, getLeadDetails);
-router.get('/addNotes', verifyJwt, addNotes);
+router.post('/addNotes', verifyJwt, addNotes);
 router.get('/getActivity', verifyJwt, getActivity);
 router.get('/getNotes', verifyJwt, getNotes);
 
