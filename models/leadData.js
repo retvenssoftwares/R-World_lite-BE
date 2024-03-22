@@ -50,6 +50,14 @@ const lead = new mongoose.Schema({
     modifiedBy: {
         type: String,
         default: ""
+    },
+    closingDate: {
+        type: String,
+        default: ""
+    },
+    amountClosed: {
+        type: Number,
+        default: 0
     }
 }, {
     versionKey: false,

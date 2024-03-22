@@ -1,21 +1,24 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
 import leadModel from '../../models/leadData.js'
+import taskModel from "../../models/taskModel.js";
+import Randomstring from "randomstring";
+import leadStatusTrack from "../../models/leadStatusTracker.js";
 
 const leadStatus = async (req, res, next) => {
     try {
-        const email = req.query.email;
+        const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const leadStatus = req.body.leadStatus
+        const { owner, leadStatus, taskStatus, title, priority, description, activity } = req.body
 
-        if (!email && !leadId) {
+        if (!userId && !leadId) {
             return res.status(400).json({
                 status: false,
                 code: 400,
                 message: "Please provide all the required field",
             });
         }
-        const findUser = await userModel.findOne({ email: email });
+        const findUser = await userModel.findOne({ userId: userId });
 
         if (!findUser) {
             return res.status(404).json({
@@ -24,15 +27,40 @@ const leadStatus = async (req, res, next) => {
                 message: "Invalid Credentials",
             });
         }
+        const date = new Date();
 
-        const updateStatus = await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus } });
+        if (owner) {
+            await leadModel.updateMany({ leadId: leadId }, { $set: { owner: owner, modifiedOn: date, modifiedBy: userId } })
+        }
 
-        if (updateStatus.modifiedCount === 0) {
-            return res.status(404).json({
-                status: false,
-                code: 404,
-                message: "status not updated",
-            });
+        if (leadStatus) {
+            await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus, modifiedOn: date, modifiedBy: userId } });
+
+            const newTask = new taskModel({
+                taskId: Randomstring.generate(8),
+                leadId: leadId,
+                assignedTo: owner || userId,
+                assignedBy: userId,
+                title: title,
+                description: description,
+                modifiedOn: date,
+                taskStatus: taskStatus,
+                priority: priority,
+            })
+            await newTask.save();
+
+            const findLeadStatus = await leadStatusTrack.findOne({ leadId: leadId });
+            if (!findLeadStatus) {
+                const newLeadStatus = new leadStatusTrack({
+                    leadId: leadId,
+                    leadStatus: [{
+                        owner: userId,
+                        activity: activity,
+                        time: date,
+                    }]
+                })
+                await newLeadStatus.save();
+            }
         }
 
         const updatedLead = await leadModel.findOne({ leadId: leadId });
@@ -40,7 +68,7 @@ const leadStatus = async (req, res, next) => {
         return res.status(200).json({
             status: true,
             code: 200,
-            message: "Lead Status Updated Successfully",
+            message: "Updated Successfully",
             data: updatedLead,
         });
     } catch (error) {

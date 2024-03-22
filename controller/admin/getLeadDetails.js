@@ -41,16 +41,78 @@ const getLeadDetails = async (req, res, next) => {
                 }
             },
             {
+                $unwind: {
+                    path: "$favLead",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "forms",
+                    localField: "formId",
+                    foreignField: "formId",
+                    as: "formDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$formDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "modifiedBy",
+                    foreignField: "userId",
+                    as: "userDetails"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$userDetails",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
                 $addFields: {
                     isFavourite: {
                         $cond: {
-                            if: { $ne: [{ $size: "$favLead" }, 0] },
+                            if: { $eq: ["$favLead.userId", userId] },
                             then: true,
                             else: false
+                        }
+                    },
+                    formName: "$formDetails.formName",
+                    modifiedBy: {
+                        $cond: {
+                            if: { $eq: [{ $type: "$userDetails" }, "missing"] },
+                            then: "",
+                            else: { $arrayElemAt: ["$userDetails.firstName", 0] }
                         }
                     }
                 }
             },
+            {
+                $project: {
+                    _id: 0,
+                    leadId: 1,
+                    formId: 1,
+                    formName: 1,
+                    created_time: 1,
+                    data: 1,
+                    leadOrigin: 1,
+                    leadOwner: 1,
+                    leadSource: 1,
+                    leadStatus: 1,
+                    isFavourite: 1,
+                    modifiedBy: 1,
+                    modifiedOn: 1,
+                    isFavourite: 1,
+                    closingDate: 1,
+                    amountClosed: 1
+                }
+            }
         );
 
         const leadsDetails = await leadModel.aggregate(pipeline);

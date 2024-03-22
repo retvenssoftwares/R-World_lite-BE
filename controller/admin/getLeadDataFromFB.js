@@ -335,7 +335,7 @@ const getLead = async (req, res, next) => {
             // console.log("formattedDate", formattedDate);
 
             if (findForm) {
-                // await formModel.updateMany({ formId: item?.id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
+                await formModel.updateMany({ formId: item?.id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
             } else {
 
                 // if (!findForm) {
@@ -394,7 +394,6 @@ const getLead = async (req, res, next) => {
                         }
                         // await formModel.updateMany({ formId: leadData?.form_id }, { $set: { leads_count: item?.leads_count, extractionDate: formattedDate } })
                         const findLead = await leadModel.findOne({ leadId: leadData?.id });
-                        console.log('findLead: ', findLead);
 
                         if (!findLead) {
 
@@ -419,13 +418,11 @@ const getLead = async (req, res, next) => {
                                 leadOrigin: "Lead Ads",
                                 leadSource: "FB Lead Ads",
                                 leadStatus: "New Lead",
-                                leadOwner: "",
-                                modifiedOn: "",
-                                modifiedBy: ""
+                                leadOwner: "789254",
                             };
 
                             const newLead = new leadModel(leadObject);
-                            // await newLead.save();
+                            await newLead.save();
                             console.log('Lead saved successfully:', newLead);
                         }
                     } catch (error) {

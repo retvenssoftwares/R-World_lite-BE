@@ -16,6 +16,26 @@ const task = new mongoose.Schema({
     assignedBy: {
         type: String,
         default: ""
+    },
+    modifiedOn:{
+        type:String,
+        default:""
+    },
+    title:{
+        type:String,
+        default:""
+    },
+    priority:{
+        type:String,
+        default:""
+    },
+    taskStatus:{
+        type:String,
+        default:""
+    },
+    description:{
+        type:String,
+        default:""
     }
 
 }, {

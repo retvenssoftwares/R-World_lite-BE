@@ -87,10 +87,16 @@ const getTodayLeads = async (req, res, next) => {
                 }
             },
             {
+                $unwind: {
+                    path: "$favLead",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
                 $addFields: {
                     isFavourite: {
                         $cond: {
-                            if: { $ne: [{ $size: "$favLead" }, 0] },
+                            if: { $eq: ["$favLead.userId", userId] },
                             then: true,
                             else: false
                         }
