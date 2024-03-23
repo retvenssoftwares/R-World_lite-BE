@@ -75,91 +75,124 @@ const getTodayLeads = async (req, res, next) => {
                             $lte: todayEnd
                         }
                     }
-                },
-                {
-                    $lookup: {
-                        from: 'forms',
-                        localField: 'formId',
-                        foreignField: 'formId',
-                        as: 'formData'
-                    }
-                },
-                {
-                    $unwind: {
-                        path: '$formData',
-                        preserveNullAndEmptyArrays: true
-                    }
-                },
-                {
-                    $lookup: {
-                        from: "favourites",
-                        localField: "leadId",
-                        foreignField: "leadId",
-                        as: "favLead"
-                    }
-                },
-                {
-                    $unwind: {
-                        path: "$favLead",
-                        preserveNullAndEmptyArrays: true
-                    }
-                },
-                {
-                    $addFields: {
-                        isFavourite: {
-                            $cond: {
-                                if: { $eq: ["$favLead.userId", userId] },
-                                then: true,
-                                else: false
-                            }
+                }
+            )
+        }
+        pipeline.push(
+            {
+                $lookup: {
+                    from: 'forms',
+                    localField: 'formId',
+                    foreignField: 'formId',
+                    as: 'formData'
+                }
+            },
+            {
+                $unwind: {
+                    path: '$formData',
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "leadOwner",
+                    foreignField: "userId",
+                    as: "userDetails"
+                }
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "modifiedBy",
+                    foreignField: "userId",
+                    as: "userDetail"
+                }
+            },
+            {
+                $lookup: {
+                    from: "favourites",
+                    localField: "leadId",
+                    foreignField: "leadId",
+                    as: "favLead"
+                }
+            },
+            {
+                $unwind: {
+                    path: "$favLead",
+                    preserveNullAndEmptyArrays: true
+                }
+            },
+            {
+                $addFields: {
+                    isFavourite: {
+                        $cond: {
+                            if: { $eq: ["$favLead.userId", userId] },
+                            then: true,
+                            else: false
+                        }
+                    },
+                    leadOwner: {
+                        $cond: {
+                            if: { $eq: [{ $size: "$userDetails" }, 0] },
+                            then: "",
+                            else: { $arrayElemAt: ["$userDetails.firstName", 0] }
+                        }
+                    },
+                    modifiedBy: {
+                        $cond: {
+                            if: { $eq: [{ $size: "$userDetail" }, 0] },
+                            then: "",
+                            else: { $arrayElemAt: ["$userDetail.firstName", 0] }
                         }
                     }
-                },
-                {
-                    $group: {
-                        _id: "$leadId",
-                        formId: { $first: "$formData.formId" },
-                        formName: { $first: "$formData.formName" },
-                        leadId: { $first: "$leadId" },
-                        data: { $first: "$data" },
-                        created_time: { $first: "$created_time" },
-                        leadOrigin: { $first: "$leadOrigin" },
-                        leadSource: { $first: "$leadSource" },
-                        leadOwner: { $first: "$leadOwner" },
-                        leadStatus: { $first: "$leadStatus" },
-                        modifiedOn: { $first: "$modifiedOn" },
-                        modifiedBy: { $first: "$modifiedBy" },
-                        isFavourite: { $first: "$isFavourite" },
-                        closingDate: { $first: "$closingDate" },
-                        amountClosed: { $first: "$amountClosed" },
-                    }
-                },
-                {
-                    $project: {
-                        _id: 0,
-                        formId: 1,
-                        formName: 1,
-                        leadId: 1,
-                        data: 1,
-                        created_time: 1,
-                        leadOrigin: 1,
-                        leadSource: 1,
-                        leadOwner: 1,
-                        leadStatus: 1,
-                        modifiedOn: 1,
-                        modifiedBy: 1,
-                        isFavourite: 1,
-                        closingDate: 1,
-                        amountClosed: 1
-                    }
-                },
-                {
-                    $sort: {
-                        created_time: -1
-                    }
                 }
-            );
-        }
+            },
+            {
+                $group: {
+                    _id: "$leadId",
+                    formId: { $first: "$formData.formId" },
+                    formName: { $first: "$formData.formName" },
+                    leadId: { $first: "$leadId" },
+                    data: { $first: "$data" },
+                    created_time: { $first: "$created_time" },
+                    leadOrigin: { $first: "$leadOrigin" },
+                    leadSource: { $first: "$leadSource" },
+                    leadOwner: { $first: "$leadOwner" },
+                    leadStatus: { $first: "$leadStatus" },
+                    modifiedOn: { $first: "$modifiedOn" },
+                    modifiedBy: { $first: "$modifiedBy" },
+                    isFavourite: { $first: "$isFavourite" },
+                    closingDate: { $first: "$closingDate" },
+                    amountClosed: { $first: "$amountClosed" },
+                }
+            },
+            {
+                $project: {
+                    _id: 0,
+                    formId: 1,
+                    formName: 1,
+                    leadId: 1,
+                    data: 1,
+                    created_time: 1,
+                    leadOrigin: 1,
+                    leadSource: 1,
+                    leadOwner: 1,
+                    leadStatus: 1,
+                    modifiedOn: 1,
+                    modifiedBy: 1,
+                    isFavourite: 1,
+                    closingDate: 1,
+                    amountClosed: 1
+                }
+            },
+            {
+                $sort: {
+                    created_time: -1
+                }
+            }
+        );
+
 
         const todayLeads = await leadModel.aggregate(pipeline);
 
