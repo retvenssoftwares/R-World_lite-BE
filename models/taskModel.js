@@ -17,11 +17,19 @@ const task = new mongoose.Schema({
         type: String,
         default: ""
     },
+    createdAt:{
+        type:String,
+        default:""
+    },
     modifiedOn:{
         type:String,
         default:""
     },
     title:{
+        type:String,
+        default:"new Task"
+    },
+    deadline:{
         type:String,
         default:""
     },

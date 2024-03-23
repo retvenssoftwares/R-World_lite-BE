@@ -6,15 +6,15 @@ const leadStatus = new mongoose.Schema({
         default: 0
     },
     leadStatus: [{
-        owner: {
+        modifiedBy: {
             type: String,
             default: ""
         },
-        activity: {
+        status: {
             type: String,
             default: ""
         },
-        time: {
+        modifiedOn: {
             type: String,
             default: ""
         },
@@ -23,5 +23,5 @@ const leadStatus = new mongoose.Schema({
 }, {
     versionKey: false,
 })
-const leadStatusTrack = mongoose.model("leadStatus", leadStatus)
-export default leadStatusTrack 
+const leadStatusTrack = mongoose.model("leadStatus", leadStatus);
+export default leadStatusTrack;

@@ -3,13 +3,13 @@ import ErrorHandler from '../../middleware/errorHandler.js';
 import leadModel from '../../models/leadData.js'
 import taskModel from "../../models/taskModel.js";
 import Randomstring from "randomstring";
-import leadStatusTrack from "../../models/leadStatusTracker.js";
+import activityHistory from "../../models/activityHistory.js";
 
 const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate } = req.body
+        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate, followUpDate,deadline } = req.body
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -27,6 +27,7 @@ const leadStatus = async (req, res, next) => {
                 message: "Invalid Credentials",
             });
         }
+
         const date = new Date().toISOString();
 
         if (owner) {
@@ -35,6 +36,10 @@ const leadStatus = async (req, res, next) => {
 
         if (amountClosed) {
             await leadModel.updateMany({ leadId: leadId }, { $set: { amountClosed: amountClosed, modifiedOn: date, modifiedBy: userId } })
+        }
+
+        if (followUpDate) {
+            await leadModel.updateMany({ leadId: leadId }, { $set: { followUpDate: followUpDate, modifiedOn: date, modifiedBy: userId } })
         }
 
         if (closingDate) {
@@ -46,9 +51,9 @@ const leadStatus = async (req, res, next) => {
         }
 
         if (activity) {
-            const findLeadStatus = await leadStatusTrack.findOne({ leadId: leadId });
+            const findLeadStatus = await activityHistory.findOne({ leadId: leadId });
             if (!findLeadStatus) {
-                const newLeadStatus = new leadStatusTrack({
+                const newLeadStatus = new activityHistory({
                     leadId: leadId,
                     leadStatus: [{
                         owner: userId,
@@ -77,6 +82,8 @@ const leadStatus = async (req, res, next) => {
                 title: title,
                 description: description,
                 modifiedOn: date,
+                createdAt: date,
+                deadline: deadline,
                 taskStatus: taskStatus,
                 priority: priority,
             })

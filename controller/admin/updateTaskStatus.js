@@ -1,7 +1,7 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
 import taskModel from "../../models/taskModel.js";
-import leadStatusTrack from "../../models/leadStatusTracker.js";
+import activityHistory from "../../models/activityHistory.js";
 
 const updateTaskStatus = async (req, res, next) => {
     try {
@@ -33,9 +33,9 @@ const updateTaskStatus = async (req, res, next) => {
         await taskModel.updateMany({ taskId: taskId }, { $set: { taskStatus: taskStatus, modifiedOn: date, modifiedBy: userId } })
 
         if (activity) {
-            const findLeadStatus = await leadStatusTrack.findOne({ leadId: leadId });
-            if (!findLeadStatus) {
-                const newLeadStatus = new leadStatusTrack({
+            const findActivityHistory = await activityHistory.findOne({ leadId: leadId });
+            if (!findActivityHistory) {
+                const newActivityHistory = new activityHistory({
                     leadId: leadId,
                     leadStatus: [{
                         owner: userId,
@@ -43,15 +43,15 @@ const updateTaskStatus = async (req, res, next) => {
                         time: date,
                     }]
                 })
-                await newLeadStatus.save();
+                await newActivityHistory.save();
             } else {
-                const leadStatusObject = {
+                const activityHistoryObject = {
                     owner: userId,
                     activity: activity,
                     time: date,
                 }
-                findLeadStatus.leadStatus.unshift(leadStatusObject);
-                await findLeadStatus.save();
+                findActivityHistory.leadStatus.unshift(activityHistoryObject);
+                await findActivityHistory.save();
             }
         }
 

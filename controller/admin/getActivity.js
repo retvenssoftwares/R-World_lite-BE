@@ -1,6 +1,6 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
-import leadStatusTrack from "../../models/leadStatusTracker.js";
+import activityHistory from "../../models/activityHistory.js";
 
 const getActivity = async (req, res, next) => {
     try {
@@ -24,7 +24,7 @@ const getActivity = async (req, res, next) => {
             });
         }
 
-        const findLead = await leadStatusTrack.aggregate([
+        const findLead = await activityHistory.aggregate([
             {
                 $match: {
                     leadId: leadId
@@ -54,8 +54,8 @@ const getActivity = async (req, res, next) => {
                 $project: {
                     _id: 0,
                     leadId: 1,
-                    activity:"$leadStatus.activity",
-                    time:"$leadStatus.time",
+                    activity: "$leadStatus.activity",
+                    time: "$leadStatus.time",
                     ownerName: "$userDetails.firstName",
                 }
             }

@@ -1,10 +1,10 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
-import notesModel from "../../models/notes.js";
 
 const getTeam = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
+        const department = req.query.department;
 
         if (!userId) {
             return res.status(400).json({
@@ -23,21 +23,43 @@ const getTeam = async (req, res, next) => {
             });
         }
 
-        const findTeam = await userModel.aggregate([
-            {
-                $match: {
-                    leaderId: userId
+        let pipeline = []
+
+        if (department === "SALES") {
+            pipeline.push(
+                {
+                    $match: {
+                        department: department
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: 1,
+                        firstName: 1,
+                        designation: 1,
+                    }
                 }
-            },
-            {
-                $project:{
-                    _id:0,
-                    userId:1,
-                    firstName:1,
-                    designation:1,
+            )
+        } else {
+            pipeline.push(
+                {
+                    $match: {
+                        leaderId: userId
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        userId: 1,
+                        firstName: 1,
+                        designation: 1,
+                    }
                 }
-            }
-        ])
+            )
+        }
+
+        const findTeam = await userModel.aggregate(pipeline)
 
         return res.status(200).json({
             status: true,

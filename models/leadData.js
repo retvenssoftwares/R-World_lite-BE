@@ -55,6 +55,10 @@ const lead = new mongoose.Schema({
         type: String,
         default: ""
     },
+    followUpDate: {
+        type: String,
+        default: ""
+    },
     amountClosed: {
         type: Number,
         default: 0

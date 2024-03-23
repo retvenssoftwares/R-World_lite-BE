@@ -52,7 +52,11 @@ const user = new mongoose.Schema({
     leaderId: {
         type: String,
         default: ""
-    }
+    },
+    department: {
+        type: String,
+        default: ""
+    },
 }, {
     versionKey: false,
 })
