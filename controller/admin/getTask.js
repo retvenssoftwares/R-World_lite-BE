@@ -81,12 +81,17 @@ const getTask = async (req, res, next) => {
                         taskStatus: 1,
                         description: 1,
                     }
+                },
+                {
+                    $sort: {
+                        modifiedOn: -1
+                    }
                 }
             );
         }
 
         if (TMId || userId && !leadId) {
-            
+
             let id
             TMId ? id = TMId : id = userId
 
@@ -97,7 +102,7 @@ const getTask = async (req, res, next) => {
                     }
                 },
                 {
-                    $lookup: {          
+                    $lookup: {
                         from: "users",
                         localField: "assignedTo",
                         foreignField: "userId",
