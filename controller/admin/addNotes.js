@@ -8,6 +8,7 @@ const addNotes = async (req, res, next) => {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
         const notes = req.body.notes
+        const tittle = req.body.tittle
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -30,6 +31,7 @@ const addNotes = async (req, res, next) => {
         if (findNote) {
             const notesObject = {
                 noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
+                tittle: tittle,
                 notes: notes,
                 addedBy: userId,
                 time: new Date().toISOString()
@@ -46,6 +48,7 @@ const addNotes = async (req, res, next) => {
                 leadId: leadId,
                 notes: [{
                     noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
+                    tittle: tittle,
                     notes: notes,
                     addedBy: userId,
                     time: new Date().toISOString()

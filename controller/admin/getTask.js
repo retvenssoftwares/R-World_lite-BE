@@ -86,14 +86,9 @@ const getTask = async (req, res, next) => {
         }
 
         if (TMId || userId && !leadId) {
+            
             let id
-            console.log('id: ', id);
-
-            if (TMId) {
-                id = TMId
-            } else {
-                id = userId
-            }
+            TMId ? id = TMId : id = userId
 
             pipeline.push(
                 {
@@ -102,7 +97,7 @@ const getTask = async (req, res, next) => {
                     }
                 },
                 {
-                    $lookup: {
+                    $lookup: {          
                         from: "users",
                         localField: "assignedTo",
                         foreignField: "userId",

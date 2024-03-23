@@ -49,6 +49,10 @@ const user = new mongoose.Schema({
         type: String,
         default: "ADMIN"
     },
+    leaderId: {
+        type: String,
+        default: ""
+    }
 }, {
     versionKey: false,
 })

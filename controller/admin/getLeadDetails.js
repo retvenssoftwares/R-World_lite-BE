@@ -35,7 +35,7 @@ const getLeadDetails = async (req, res, next) => {
             {
                 $lookup: {
                     from: "favourites",
-                    let: { leadId: "$leadId", userId: "$userId" },
+                    let: { leadId: leadId, userId: userId },
                     pipeline: [
                         {
                             $match: {
@@ -49,12 +49,6 @@ const getLeadDetails = async (req, res, next) => {
                         }
                     ],
                     as: "favLead"
-                }
-            },
-            {
-                $unwind: {
-                    path: "$favLead",
-                    preserveNullAndEmptyArrays: true
                 }
             },
             {
@@ -91,9 +85,9 @@ const getLeadDetails = async (req, res, next) => {
                 $addFields: {
                     isFavourite: {
                         $cond: {
-                            if: { $ne: ["$favLead", null] },
-                            then: true,
-                            else: false
+                            if: { $eq: [{ $size: "$favLead" }, 0] },
+                            then: false,
+                            else: true
                         }
                     },
                     formName: "$formDetails.formName",

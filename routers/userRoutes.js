@@ -14,6 +14,9 @@ import addNotes from '../controller/admin/addNotes.js';
 import getActivity from '../controller/admin/getActivity.js';
 import getNotes from '../controller/admin/getNotes.js';
 import getTask from '../controller/admin/getTask.js';
+import getForm from '../controller/admin/getAllForm.js';
+import getTeam from '../controller/admin/getTeam.js';
+import updateTaskStatus from '../controller/admin/updateTaskStatus.js';
 
 router.post('/login', login);
 router.get('/getLeadDataFromFB', getLeadDataFromFB);
@@ -26,5 +29,8 @@ router.post('/addNotes', verifyJwt, addNotes);
 router.get('/getActivity', verifyJwt, getActivity);
 router.get('/getNotes', verifyJwt, getNotes);
 router.get('/getTask', verifyJwt, getTask);
+router.get('/getForm', verifyJwt, getForm);
+router.get('/getTeam', verifyJwt, getTeam);
+router.post('/updateTaskStatus', verifyJwt, updateTaskStatus);
 
 export default router;

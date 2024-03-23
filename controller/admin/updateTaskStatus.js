@@ -1,17 +1,16 @@
 import userModel from "../../models/userModel.js";
 import ErrorHandler from '../../middleware/errorHandler.js';
-import leadModel from '../../models/leadData.js'
 import taskModel from "../../models/taskModel.js";
-import Randomstring from "randomstring";
 import leadStatusTrack from "../../models/leadStatusTracker.js";
 
-const leadStatus = async (req, res, next) => {
+const updateTaskStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
-        const leadId = +req.query.leadId
-        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate } = req.body
+        const taskId = +req.query.taskId
+        const taskStatus = req.body.taskStatus
+        const activity = req.body.activity
 
-        if (!userId && !leadId) {
+        if (!userId && !taskId) {
             return res.status(400).json({
                 status: false,
                 code: 400,
@@ -27,23 +26,11 @@ const leadStatus = async (req, res, next) => {
                 message: "Invalid Credentials",
             });
         }
+
         const date = new Date().toISOString();
-
-        if (owner) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { owner: owner, modifiedOn: date, modifiedBy: userId } })
-        }
-
-        if (amountClosed) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { amountClosed: amountClosed, modifiedOn: date, modifiedBy: userId } })
-        }
-
-        if (closingDate) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { closingDate: closingDate, modifiedOn: date, modifiedBy: userId } })
-        }
-
-        if (leadStatus) {
-            await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus, modifiedOn: date, modifiedBy: userId } });
-        }
+        const findTask = await taskModel.findOne({ taskId: taskId });
+        const leadId = findTask.leadId;
+        await taskModel.updateMany({ taskId: taskId }, { $set: { taskStatus: taskStatus, modifiedOn: date, modifiedBy: userId } })
 
         if (activity) {
             const findLeadStatus = await leadStatusTrack.findOne({ leadId: leadId });
@@ -68,33 +55,16 @@ const leadStatus = async (req, res, next) => {
             }
         }
 
-        if (owner || leadStatus) {
-            const newTask = new taskModel({
-                taskId: Randomstring.generate({ charset: 'numeric', length: 8 }),
-                leadId: leadId,
-                assignedTo: owner || userId,
-                assignedBy: userId,
-                title: title,
-                description: description,
-                modifiedOn: date,
-                taskStatus: taskStatus,
-                priority: priority,
-            })
-            await newTask.save();
-        }
-
-        const updatedLead = await leadModel.findOne({ leadId: leadId });
-
         return res.status(200).json({
             status: true,
             code: 200,
-            message: "Updated Successfully",
-            data: updatedLead,
+            message: "Task updated successfully",
         });
+
     } catch (error) {
         console.log('error: ', error);
         return next(new ErrorHandler(error.message, 500));
     }
 }
 
-export default leadStatus;
+export default updateTaskStatus;

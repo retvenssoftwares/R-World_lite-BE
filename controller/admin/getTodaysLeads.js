@@ -24,8 +24,8 @@ const getTodayLeads = async (req, res, next) => {
         today ? today = new Date(today) : today = new Date();
         let todayStart, todayEnd;
 
-        todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0);
-        todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() , 0, 0, 0).toISOString();
+        todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59).toISOString();
 
 
         // if (type === "7Days") {
@@ -59,8 +59,8 @@ const getTodayLeads = async (req, res, next) => {
             {
                 $match: {
                     created_time: {
-                        $gte: todayStart.toISOString(),
-                        $lte: todayEnd.toISOString()
+                        $gte: todayStart,
+                        $lte: todayEnd
                     }
                 }
             },
@@ -113,8 +113,13 @@ const getTodayLeads = async (req, res, next) => {
                     created_time: { $first: "$created_time" },
                     leadOrigin: { $first: "$leadOrigin" },
                     leadSource: { $first: "$leadSource" },
+                    leadOwner: { $first: "$leadOwner" },
                     leadStatus: { $first: "$leadStatus" },
-                    isFavourite: { $first: "$isFavourite" }
+                    modifiedOn: { $first: "$modifiedOn" },
+                    modifiedBy: { $first: "$modifiedBy" },
+                    isFavourite: { $first: "$isFavourite" },
+                    closingDate: { $first: "$closingDate" },
+                    amountClosed: { $first: "$amountClosed" },
                 }
             },
             {
@@ -127,8 +132,13 @@ const getTodayLeads = async (req, res, next) => {
                     created_time: 1,
                     leadOrigin: 1,
                     leadSource: 1,
+                    leadOwner: 1,
                     leadStatus: 1,
-                    isFavourite: 1
+                    modifiedOn: 1,
+                    modifiedBy: 1,
+                    isFavourite: 1,
+                    closingDate: 1,
+                    amountClosed: 1
                 }
             },
             {

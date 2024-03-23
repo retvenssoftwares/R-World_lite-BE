@@ -55,6 +55,7 @@ const getNotes = async (req, res, next) => {
                     _id: 0,
                     leadId: 1,
                     noteId: 1,
+                    tittle: "$notes.tittle",
                     notes: "$notes.notes",
                     time: "$notes.time",
                     addedBy: "$userDetails.firstName",

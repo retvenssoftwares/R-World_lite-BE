@@ -27,11 +27,11 @@ const task = new mongoose.Schema({
     },
     priority:{
         type:String,
-        default:""
+        default:"High"
     },
     taskStatus:{
         type:String,
-        default:""
+        default:"pending"
     },
     description:{
         type:String,
