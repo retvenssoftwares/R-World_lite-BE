@@ -5,6 +5,10 @@ const leadStatus = new mongoose.Schema({
         type: Number,
         default: 0
     },
+    created_time: {
+        type: String,
+        default: ""
+    },
     leadStatus: [{
         modifiedBy: {
             type: String,

@@ -6,7 +6,7 @@ const getTask = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const TMId = req.query.TMId
+        let { startDate, endDate, TMId } = req.query
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -25,6 +25,12 @@ const getTask = async (req, res, next) => {
             });
         }
 
+        startDate ? startDate = new Date(startDate) : startDate = new Date();
+        endDate ? endDate = new Date(endDate) : endDate = new Date();
+        
+        startDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 0, 0, 0).toISOString();
+        endDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59).toISOString();
+
         const pipeline = [];
 
         if (leadId) {
@@ -32,6 +38,7 @@ const getTask = async (req, res, next) => {
                 {
                     $match: {
                         leadId: leadId,
+                        createdAt: { $gte: startDate, $lte: endDate }
                     }
                 },
                 {
@@ -99,6 +106,7 @@ const getTask = async (req, res, next) => {
                 {
                     $match: {
                         assignedTo: id,
+                        createdAt: { $gte: startDate, $lte: endDate }
                     }
                 },
                 {

@@ -365,7 +365,7 @@ const getLead = async (req, res, next) => {
             const fieldData = response?.data;
             let LeadData = fieldData?.data
 
-            const filteredLeads = LeadData.filter(lead => lead.created_time > extractionDate);
+            const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
 
             if (LeadData?.length > 0) {
                 allLeads.push(filteredLeads)
@@ -376,7 +376,7 @@ const getLead = async (req, res, next) => {
                 const response = await axios.get(next);
                 const fieldData = response?.data;
                 LeadData = fieldData?.data
-                const filteredLeads = LeadData.filter(lead => lead.created_time > extractionDate);
+                const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
                 allLeads.push(filteredLeads)
                 next = fieldData?.paging?.next;
             }

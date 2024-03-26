@@ -7,6 +7,11 @@ const getTodayLeads = async (req, res, next) => {
         const userId = req.query.userId || req.authData.userId;
         let today = req.query.today;
         let endDate = req.query.endDate;
+        let status = req.query.status;
+
+        if (typeof status === 'string') {
+            status = [status];
+        }
 
         const pageSize = parseInt(req.query.pageSize) || 10;
         const currentPage = parseInt(req.query.page) || 1;
@@ -26,8 +31,10 @@ const getTodayLeads = async (req, res, next) => {
         endDate ? endDate = new Date(endDate) : endDate = new Date();
         let todayStart, todayEnd;
 
-        todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
-        todayEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59).toISOString();
+        // todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0).toISOString();
+        todayStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 1, 18, 30, 0)).toISOString();
+        // todayEnd = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59).toISOString();
+        todayEnd = new Date(Date.UTC(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59)).toISOString();
 
         // if (type === "7Days") {
         //     todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7, 0, 0, 0);
@@ -57,26 +64,50 @@ const getTodayLeads = async (req, res, next) => {
         const pipeline = [];
 
         if (req.query.userId) {
-
-            pipeline.push(
-                {
-                    $match: {
-                        leadOwner: userId,
-                    }
-                }
-            )
-        } else {
-
-            pipeline.push(
-                {
-                    $match: {
-                        created_time: {
-                            $gte: todayStart,
-                            $lte: todayEnd
+            if (status && status.length > 0) {
+                pipeline.push(
+                    {
+                        $match: {
+                            leadOwner: userId,
+                            leadStatus: { $in: status }
                         }
                     }
-                }
-            )
+                )
+            } else {
+                pipeline.push(
+                    {
+                        $match: {
+                            leadOwner: userId,
+                        }
+                    }
+                )
+            }
+        } else {
+
+            if (status && status.length > 0) {
+                pipeline.push(
+                    {
+                        $match: {
+                            created_time: {
+                                $gte: todayStart,
+                                $lte: todayEnd
+                            },
+                            leadStatus: { $in: status }
+                        }
+                    }
+                )
+            } else {
+                pipeline.push(
+                    {
+                        $match: {
+                            created_time: {
+                                $gte: todayStart,
+                                $lte: todayEnd
+                            },
+                        }
+                    }
+                )
+            }
         }
         pipeline.push(
             {

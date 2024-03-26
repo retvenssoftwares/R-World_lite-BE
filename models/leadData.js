@@ -62,7 +62,11 @@ const lead = new mongoose.Schema({
     amountClosed: {
         type: Number,
         default: 0
-    }
+    },
+    amountProposed: {
+        type: Number,
+        default: 0
+    },
 }, {
     versionKey: false,
 })

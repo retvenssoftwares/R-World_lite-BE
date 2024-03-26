@@ -18,6 +18,7 @@ import getForm from '../controller/admin/getAllForm.js';
 import getTeam from '../controller/admin/getTeam.js';
 import updateTaskStatus from '../controller/admin/updateTaskStatus.js';
 import assignLead from '../controller/admin/assignLead.js';
+import getMonthReport from '../controller/dashboard/report.js';
 
 router.post('/login', login);
 router.get('/getLeadDataFromFB', getLeadDataFromFB);
@@ -34,5 +35,6 @@ router.get('/getForm', verifyJwt, getForm);
 router.get('/getTeam', verifyJwt, getTeam);
 router.post('/updateTaskStatus', verifyJwt, updateTaskStatus);
 router.post('/assignLead', verifyJwt, assignLead);
+router.get('/getMonthReport', verifyJwt, getMonthReport);
 
 export default router;

@@ -4,12 +4,13 @@ import leadModel from '../../models/leadData.js'
 import taskModel from "../../models/taskModel.js";
 import Randomstring from "randomstring";
 import activityHistory from "../../models/activityHistory.js";
+import leadStatusTrack from "../../models/leadStatusTrack.js";
 
 const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate, followUpDate,deadline } = req.body
+        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate, followUpDate, deadline, amountProposed } = req.body
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -30,6 +31,8 @@ const leadStatus = async (req, res, next) => {
 
         const date = new Date().toISOString();
 
+        const findLead = await leadModel.findOne({ leadId: leadId })
+
         if (owner) {
             await leadModel.updateMany({ leadId: leadId }, { $set: { owner: owner, modifiedOn: date, modifiedBy: userId } })
         }
@@ -48,28 +51,53 @@ const leadStatus = async (req, res, next) => {
 
         if (leadStatus) {
             await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus, modifiedOn: date, modifiedBy: userId } });
+            
+            await leadModel.updateOne({ leadId: leadId }, { $set: { amountProposed: amountProposed, modifiedOn: date, modifiedBy: userId } });
+
+            const findLeadTrack = await leadStatusTrack.findOne({ leadId: leadId });
+
+            if (!findLeadTrack) {
+                const newLeadTrack = new leadStatusTrack({
+                    leadId: leadId,
+                    created_time: findLead?.created_time,
+                    leadStatus: [{
+                        modifiedBy: userId,
+                        status: leadStatus,
+                        modifiedOn: date,
+                    }]
+                })
+                await newLeadTrack.save();
+            } else {
+                const leadTrackObject = {
+                    modifiedBy: userId,
+                    status: leadStatus,
+                    modifiedOn: date,
+                }
+                findLeadTrack.leadStatus.unshift(leadTrackObject);
+                await findLeadTrack.save();
+            }
         }
 
         if (activity) {
-            const findLeadStatus = await activityHistory.findOne({ leadId: leadId });
-            if (!findLeadStatus) {
-                const newLeadStatus = new activityHistory({
+            const findActivityStatus = await activityHistory.findOne({ leadId: leadId });
+            if (!findActivityStatus) {
+                const newActivityStatus = new activityHistory({
                     leadId: leadId,
-                    leadStatus: [{
+                    activityStatus: [{
                         owner: userId,
                         activity: activity,
                         time: date,
                     }]
                 })
-                await newLeadStatus.save();
+                await newActivityStatus.save();
             } else {
-                const leadStatusObject = {
+                const activityStatusObject = {
                     owner: userId,
                     activity: activity,
                     time: date,
                 }
-                findLeadStatus.leadStatus.unshift(leadStatusObject);
-                await findLeadStatus.save();
+                findActivityStatus.activityStatus.unshift(activityStatusObject);
+                await findActivityStatus.save();
             }
         }
 

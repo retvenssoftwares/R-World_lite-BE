@@ -32,14 +32,14 @@ const getActivity = async (req, res, next) => {
             },
             {
                 $unwind: {
-                    path: "$leadStatus",
+                    path: "$activityStatus",
                     preserveNullAndEmptyArrays: true
                 }
             },
             {
                 $lookup: {
                     from: "users",
-                    localField: "leadStatus.owner",
+                    localField: "activityStatus.owner",
                     foreignField: "userId",
                     as: "userDetails"
                 }
@@ -54,8 +54,8 @@ const getActivity = async (req, res, next) => {
                 $project: {
                     _id: 0,
                     leadId: 1,
-                    activity: "$leadStatus.activity",
-                    time: "$leadStatus.time",
+                    activity: "$activityStatus.activity",
+                    time: "$activityStatus.time",
                     ownerName: "$userDetails.firstName",
                 }
             }
@@ -65,7 +65,7 @@ const getActivity = async (req, res, next) => {
             status: true,
             code: 200,
             message: "Activity history fetched successfully",
-            data: findLead || ""
+            data: findLead 
         });
 
     } catch (error) {

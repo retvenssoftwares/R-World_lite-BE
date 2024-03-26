@@ -5,7 +5,7 @@ const activityModel = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    leadStatus: [{
+    activityStatus: [{
         owner: {
             type: String,
             default: ""
