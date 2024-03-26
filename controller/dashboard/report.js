@@ -6,6 +6,7 @@ import leadStatusTrack from "../../models/leadStatusTrack.js";
 const getMonthReport = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
+        const { startDate, endDate } = req.query
 
         if (!userId) {
             return res.status(400).json({
@@ -26,12 +27,14 @@ const getMonthReport = async (req, res, next) => {
 
         let pipeline = [];
         let pipeline1 = [];
+        
         const currentDate = new Date();
 
-        const firstDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString();
+        let firstDateOfMonth, lastDateOfMonth
 
-        const lastDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
+        startDate ? firstDateOfMonth = new Date(startDate).toISOString() : firstDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).toISOString()
 
+        endDate ? lastDateOfMonth = new Date(endDate).toISOString() : lastDateOfMonth = new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0, 23, 59, 59, 999).toISOString();
 
         pipeline.push(
             {
