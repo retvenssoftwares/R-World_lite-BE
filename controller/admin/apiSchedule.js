@@ -142,7 +142,16 @@ const getLead = async () => {
 }
 
 
-cron.schedule('30 9 * * *', async () => {
+// cron.schedule('30 9 * * *', async () => {
+//     try {
+//         console.log('Running scheduled job...');
+//         await getLead();
+//         console.log('Scheduled job completed.');
+//     } catch (error) {
+//         console.error('Error in scheduled job:', error);
+//     }
+// });
+cron.schedule('*/5 * * * *', async () => {
     try {
         console.log('Running scheduled job...');
         await getLead();
