@@ -13,9 +13,9 @@ const getTodayLeads = async (req, res, next) => {
             status = [status];
         }
 
-        const pageSize = parseInt(req.query.pageSize) || 10;
-        const currentPage = parseInt(req.query.page) || 1;
-        const skip = (currentPage - 1) * pageSize;
+        // const pageSize = parseInt(req.query.pageSize) || 10;
+        // const currentPage = parseInt(req.query.page) || 1;
+        // const skip = (currentPage - 1) * pageSize;
 
         const findUser = await userModel.findOne({ userId: userId });
 
@@ -227,26 +227,33 @@ const getTodayLeads = async (req, res, next) => {
 
         const todayLeads = await leadModel.aggregate(pipeline);
 
-        const paginatedResults = todayLeads.slice(skip, skip + pageSize);
+        // const paginatedResults = todayLeads.slice(skip, skip + pageSize);
 
-        if (paginatedResults.length > 0) {
-            return res.status(200).json({
-                status: true,
-                code: 200,
-                message: "Today's leads retrieved successfully",
-                currentPage,
-                pageSize,
-                data: paginatedResults,
-            });
-        } else {
-            return res.status(200).json({
-                status: true,
-                code: 200,
-                message: 'You have reached the end',
-                currentPage,
-                pageSize,
-            });
-        }
+        // if (paginatedResults.length > 0) {
+        //     return res.status(200).json({
+        //         status: true,
+        //         code: 200,
+        //         message: "Today's leads retrieved successfully",
+        //         currentPage,
+        //         pageSize,
+        //         data: paginatedResults,
+        //     });
+        // } else {
+        //     return res.status(200).json({
+        //         status: true,
+        //         code: 200,
+        //         message: 'You have reached the end',
+        //         currentPage,
+        //         pageSize,
+        //     });
+        // }
+
+        return res.status(200).json({
+            status: true,
+            code: 200,
+            message: "Today's leads retrieved successfully",
+            data: todayLeads
+        });
 
     } catch (error) {
         console.log('error: ', error);
