@@ -3,10 +3,12 @@ import ErrorHandler from '../../middleware/errorHandler.js';
 import leadModel from "../../models/leadData.js";
 import taskModel from "../../models/taskModel.js";
 import Randomstring from "randomstring";
+import activityHistory from "../../models/activityHistory.js";
 
 const assignLead = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
+        const userName = req.authData.firstName;
         const ownerId = req.body.ownerId;
         const data = req.body.data
 
@@ -19,6 +21,7 @@ const assignLead = async (req, res, next) => {
         }
 
         const findUser = await userModel.findOne({ userId: ownerId });
+        console.log('findUser: ', findUser.firstName);
 
         if (!findUser) {
             return res.status(404).json({
@@ -41,6 +44,27 @@ const assignLead = async (req, res, next) => {
                     createdAt: date,
                 })
                 await newTask.save();
+
+                const findActivityStatus = await activityHistory.findOne({ leadId: item?.leadId });
+                if (!findActivityStatus) {
+                    const newActivityStatus = new activityHistory({
+                        leadId: item?.leadId,
+                        activityStatus: [{
+                            owner: ownerId,
+                            activity: `This lead is assigned by ${userName} to ${findUser?.firstName}`,
+                            time: date,
+                        }]
+                    })
+                    await newActivityStatus.save();
+                } else {
+                    const activityStatusObject = {
+                        owner: ownerId,
+                        activity: `This lead is assigned by ${userName} to ${findUser?.firstName}`,
+                        time: date,
+                    }
+                    findActivityStatus.activityStatus.unshift(activityStatusObject);
+                    await findActivityStatus.save();
+                }
             })
         )
 
