@@ -151,7 +151,10 @@ const getLead = async () => {
 //         console.error('Error in scheduled job:', error);
 //     }
 // });
-cron.schedule('*/5 * * * *', async () => {
+
+// scheduled job for every 2 hours
+
+cron.schedule('0 */2 * * *', async () => {
     try {
         console.log('Running scheduled job...');
         await getLead();
