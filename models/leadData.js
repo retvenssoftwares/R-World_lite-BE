@@ -75,9 +75,13 @@ const lead = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    clientAmount: {
+    amountNegotiated: {
         type: Number,
         default: 0
+    },
+    expectedMeetingDate: {
+        type: String,
+        default: ""
     },
 }, {
     versionKey: false,

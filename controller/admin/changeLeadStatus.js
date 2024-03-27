@@ -5,12 +5,13 @@ import taskModel from "../../models/taskModel.js";
 import Randomstring from "randomstring";
 import activityHistory from "../../models/activityHistory.js";
 import leadStatusTrack from "../../models/leadStatusTrack.js";
+import notesModel from "../../models/notes.js";
 
 const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const { owner, leadStatus, taskStatus, title, priority, description, activity, amountClosed, closingDate, followUpDate, deadline, amountProposed } = req.body
+        const { owner, leadStatus, taskStatus, taskTitle, priority, taskDescription, activity, amountClosed, closingDate, followUpDate, deadline, amountProposed, amountNegotiated, expectedMeetingDate, notesTitle, notesDescription } = req.body
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -19,6 +20,7 @@ const leadStatus = async (req, res, next) => {
                 message: "Please provide all the required field",
             });
         }
+
         const findUser = await userModel.findOne({ userId: userId });
 
         if (!findUser) {
@@ -56,6 +58,15 @@ const leadStatus = async (req, res, next) => {
 
             if (amountProposed) {
                 await leadModel.updateOne({ leadId: leadId }, { $set: { amountProposed: +amountProposed, modifiedOn: date, modifiedBy: userId } });
+            }
+
+            if (amountNegotiated) {
+                await leadModel.updateOne({ leadId: leadId }, { $set: { amountNegotiated: +amountNegotiated, modifiedOn: date, modifiedBy: userId } });
+            }
+
+            if (expectedMeetingDate) {
+                const date = new Date(expectedMeetingDate).toISOString();
+                await leadModel.updateOne({ leadId: leadId }, { $set: { expectedMeetingDate: expectedMeetingDate, modifiedOn: date, modifiedBy: userId } });
             }
 
             const findLeadTrack = await leadStatusTrack.findOne({ leadId: leadId });
@@ -111,8 +122,8 @@ const leadStatus = async (req, res, next) => {
                 leadId: leadId,
                 assignedTo: owner || userId,
                 assignedBy: userId,
-                title: title,
-                description: description,
+                title: taskTitle,
+                description: taskDescription,
                 modifiedOn: date,
                 createdAt: date,
                 deadline: deadline,
@@ -120,6 +131,35 @@ const leadStatus = async (req, res, next) => {
                 priority: priority,
             })
             await newTask.save();
+        }
+
+        if (notesTitle && notesDescription) {
+            const findNote = await notesModel.findOne({ leadId: leadId });
+
+            if (findNote) {
+                const notesObject = {
+                    noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
+                    tittle: notesTitle,
+                    notes: notesDescription,
+                    addedBy: userId,
+                    time: date
+                }
+                findNote.notes.unshift(notesObject);
+                await findNote.save()
+            } else {
+                const newNote = new notesModel({
+                    leadId: leadId,
+                    notes: [{
+                        noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
+                        tittle: notesTitle,
+                        notes: notesDescription,
+                        addedBy: userId,
+                        time: date
+                    }]
+                })
+                await newNote.save()
+            }
+
         }
 
         const updatedLead = await leadModel.findOne({ leadId: leadId });

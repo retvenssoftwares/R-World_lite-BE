@@ -6,6 +6,7 @@ const leadsOverview = async (req, res, next) => {
     try {
 
         const userId = req.authData.userId;
+        const type = req.query.type;
 
         const findUser = await userModel.findOne({ userId: userId });
 
@@ -20,84 +21,121 @@ const leadsOverview = async (req, res, next) => {
         const today = new Date();
         let todayStart, todayEnd;
 
-        todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate() - 7, 0, 0, 0);
-        todayEnd = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59);
+        todayStart = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate() - 7, 0, 0, 0)).toISOString();
+        console.log('todayStart: ', todayStart);
+        todayEnd = new Date(Date.UTC(today.getFullYear(), today.getMonth(), today.getDate(), 23, 59, 59)).toISOString();
+        console.log('todayEnd: ', todayEnd);
 
-        const pipeline = [];
+        let pipeline = [];
+        let response
 
-        pipeline.push(
-            {
-                $match: {
-                    created_time: {
-                        $gte: todayStart.toISOString(),
-                        $lte: todayEnd.toISOString()
+        if (type) {
+            if (type !== "activeLeads") {
+                pipeline.push(
+                    {
+                        $match: {
+                            created_time: {
+                                $gte: todayStart,
+                                $lte: todayEnd,
+                            },
+                            leadStatus: type,
+                        }
+                    },
+                )
+            } else {
+                pipeline.push(
+                    {
+                        $match: {
+                            created_time: {
+                                $gte: todayStart,
+                                $lte: todayEnd,
+                            },
+                            leadStatus: {
+                                $nin: ["New Lead", "Customer", "Not-interested", "Not Qualified", "Invalid", "Wrong Lead"]
+                            }
+                        }
+                    },
+                )
+            }
+            const overview = await leadModel.aggregate(pipeline);
+            response = overview
+
+        } else {
+            pipeline.push(
+                {
+                    $match: {
+                        created_time: {
+                            $gte: todayStart,
+                            $lte: todayEnd
+                        }
+                    }
+                },
+                {
+                    $group: {
+                        _id: 0,
+                        newLeads: {
+                            $sum: {
+                                $cond: {
+                                    if: { $eq: ["$leadStatus", "New Lead"] },
+                                    then: 1,
+                                    else: 0
+                                }
+                            }
+                        },
+                        activeLeads: {
+                            $sum: {
+                                $cond: {
+                                    if: {
+                                        $in: [
+                                            "$leadStatus",
+                                            ["New Lead", "Customer", "Not-interested", "Not Qualified", "Invalid", "Wrong Lead"]
+                                        ]
+                                    },
+                                    then: 0,
+                                    else: 1
+                                }
+                            }
+                        },
+                        qualifiedLeads: {
+                            $sum: {
+                                $cond: {
+                                    if: { $eq: ["$leadStatus", "Qualification"] },
+                                    then: 1,
+                                    else: 0
+                                }
+                            }
+                        },
+                        followUpLeads: {
+                            $sum: {
+                                $cond: {
+                                    if: { $eq: ["$leadStatus", "Follow Up"] },
+                                    then: 1,
+                                    else: 0
+                                }
+                            }
+                        },
+                    }
+                },
+                {
+                    $project: {
+                        _id: 0,
+                        newLeads: 1,
+                        activeLeads: 1,
+                        qualifiedLeads: 1,
+                        followUpLeads: 1,
                     }
                 }
-            },
-            {
-                $group: {
-                    _id: 0,
-                    newLeads: {
-                        $sum: {
-                            $cond: {
-                                if: { $eq: ["$leadStatus", "New Lead"] },
-                                then: 1,
-                                else: 0
-                            }
-                        }
-                    },
-                    activeLeads: {
-                        $sum: {
-                            $cond: {
-                                if: {
-                                    $in: [
-                                        "$leadStatus",
-                                        ["New Lead", "Customer", "Not-interested", "Not Qualified", "Invalid", "Wrong Lead"]
-                                    ]
-                                },
-                                then: 0,
-                                else: 1
-                            }
-                        }
-                    },
-                    qualifiedLeads: {
-                        $sum: {
-                            $cond: {
-                                if: { $eq: ["$leadStatus", "Qualification"] },
-                                then: 1,
-                                else: 0
-                            }
-                        }
-                    },
-                    followUpLeads: {
-                        $sum: {
-                            $cond: {
-                                if: { $eq: ["$leadStatus", "Follow Up"] },
-                                then: 1,
-                                else: 0
-                            }
-                        }
-                    },
-                }
-            },
-            {
-                $project: {
-                    _id: 0,
-                    newLeads: 1,
-                    activeLeads: 1,
-                    qualifiedLeads: 1,
-                    followUpLeads: 1,
-                }
-            }
-        );
+            );
 
-        const overview = await leadModel.aggregate(pipeline);
+            const overview = await leadModel.aggregate(pipeline);
+            response = overview[0]
+        }
 
         return res.status(200).json({
             status: true,
             code: 200,
             message: "Leads Overview",
-            data: overview[0],
+            data: response,
         });
     } catch (error) {
         console.log('error: ', error);

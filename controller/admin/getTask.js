@@ -6,7 +6,7 @@ const getTask = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        let { startDate, endDate, TMId } = req.query
+        let { startDate, endDate, TMId, taskStatus } = req.query
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -27,20 +27,34 @@ const getTask = async (req, res, next) => {
 
         startDate ? startDate = new Date(startDate) : startDate = new Date();
         endDate ? endDate = new Date(endDate) : endDate = new Date();
-        
+
         startDate = new Date(startDate.getFullYear(), startDate.getMonth(), startDate.getDate(), 0, 0, 0).toISOString();
         endDate = new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate(), 23, 59, 59).toISOString();
 
         const pipeline = [];
 
         if (leadId) {
+            if (taskStatus) {
+                pipeline.push(
+                    {
+                        $match: {
+                            leadId: leadId,
+                            createdAt: { $gte: startDate, $lte: endDate },
+                            taskStatus: taskStatus
+                        }
+                    },
+                )
+            } else {
+                pipeline.push(
+                    {
+                        $match: {
+                            leadId: leadId,
+                            createdAt: { $gte: startDate, $lte: endDate }
+                        }
+                    },
+                )
+            }
             pipeline.push(
-                {
-                    $match: {
-                        leadId: leadId,
-                        createdAt: { $gte: startDate, $lte: endDate }
-                    }
-                },
                 {
                     $lookup: {
                         from: "users",
@@ -102,13 +116,27 @@ const getTask = async (req, res, next) => {
             let id
             TMId ? id = TMId : id = userId
 
-            pipeline.push(
-                {
-                    $match: {
-                        assignedTo: id,
-                        createdAt: { $gte: startDate, $lte: endDate }
+            if (taskStatus) {
+                pipeline.push(
+                    {
+                        $match: {
+                            assignedTo: id,
+                            createdAt: { $gte: startDate, $lte: endDate },
+                            taskStatus: taskStatus
+                        }
                     }
-                },
+                )
+            } else {
+                pipeline.push(
+                    {
+                        $match: {
+                            assignedTo: id,
+                            createdAt: { $gte: startDate, $lte: endDate }
+                        }
+                    },
+                )
+            }
+            pipeline.push(
                 {
                     $lookup: {
                         from: "users",

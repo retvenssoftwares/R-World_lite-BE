@@ -196,6 +196,10 @@ const getTodayLeads = async (req, res, next) => {
                     isFavourite: { $first: "$isFavourite" },
                     closingDate: { $first: "$closingDate" },
                     amountClosed: { $first: "$amountClosed" },
+                    campaignName: { $first: "$campaignName" },
+                    campaignId: { $first: "$campaignId" },
+                    amountNegotiated: { $first: "$amountNegotiated" },
+                    amountProposed: { $first: "$amountProposed" },
                 }
             },
             {
@@ -208,13 +212,17 @@ const getTodayLeads = async (req, res, next) => {
                     created_time: 1,
                     leadOrigin: 1,
                     leadSource: 1,
+                    campaignId: 1,
+                    campaignName: 1,
                     leadOwner: 1,
                     leadStatus: 1,
                     modifiedOn: 1,
                     modifiedBy: 1,
                     isFavourite: 1,
                     closingDate: 1,
-                    amountClosed: 1
+                    amountClosed: 1,
+                    amountProposed: 1,
+                    amountNegotiated: 1
                 }
             },
             {

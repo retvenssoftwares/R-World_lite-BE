@@ -123,7 +123,12 @@ const getLeadDetails = async (req, res, next) => {
                     modifiedBy: 1,
                     modifiedOn: 1,
                     closingDate: 1,
-                    amountClosed: 1
+                    amountClosed: 1,
+                    amountNegotiated: 1,
+                    campaignId: 1,
+                    campaignName: 1,
+                    followUpDate: 1,
+                    amountProposed: 1
                 }
             }
         );

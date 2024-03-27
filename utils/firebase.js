@@ -1,12 +1,12 @@
 import admin from 'firebase-admin';
-import serviceAccount from './google-service.js'; 
+import serviceAccount from './google-service.js';
 
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount)
 });
 
-const sendNotification = async (title, message, registrationToken) => {
+async function sendNotification(title, message, registrationToken) {
     try {
         const payload = {
             notification: {
@@ -22,4 +22,4 @@ const sendNotification = async (title, message, registrationToken) => {
     }
 }
 
-export default sendNotification;
+export default { sendNotification };

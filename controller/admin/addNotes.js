@@ -41,7 +41,7 @@ const addNotes = async (req, res, next) => {
             return res.status(200).json({
                 status: true,
                 code: 200,
-                message: "Notes added successfully",
+                message: "Notes updated successfully",
             });
         } else {
             const newNote = new notesModel({
