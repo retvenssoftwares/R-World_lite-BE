@@ -360,7 +360,7 @@ const getLead = async (req, res, next) => {
             const findForm = await formModel.findOne({ formId: item?.id });
             const extractionDate = findForm?.extractionDate
             let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
-            const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time, id", access_token: access_token } });
+            const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time,campaign_name,campaign_id, id", access_token: access_token } });
 
             const fieldData = response?.data;
             let LeadData = fieldData?.data
@@ -377,7 +377,9 @@ const getLead = async (req, res, next) => {
                 const fieldData = response?.data;
                 LeadData = fieldData?.data
                 const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
-                allLeads.push(filteredLeads)
+                if (LeadData?.length > 0) {
+                    allLeads.push(filteredLeads)
+                }
                 next = fieldData?.paging?.next;
             }
         }));
@@ -409,6 +411,8 @@ const getLead = async (req, res, next) => {
                             const leadObject = {
                                 formId: leadData?.form_id,
                                 leadId: +leadData?.id,
+                                campaignName: leadData?.campaign_name,
+                                campaignId: leadData?.campaign_id,
                                 created_time: leadData?.created_time,
                                 data: fieldsWithIds?.map(field => ({
                                     fieldName: field?.fieldName,
@@ -423,7 +427,7 @@ const getLead = async (req, res, next) => {
 
                             const newLead = new leadModel(leadObject);
                             await newLead.save();
-                            console.log('Lead saved successfully:', newLead);
+                            console.log('Lead saved successfully:');
                         }
                     } catch (error) {
                         console.error('Error processing lead:', error);
@@ -432,7 +436,7 @@ const getLead = async (req, res, next) => {
             }));
         }
 
-        processLeads(allLeads);
+        await processLeads(allLeads);
 
         return res.status(200).json({
             status: true,

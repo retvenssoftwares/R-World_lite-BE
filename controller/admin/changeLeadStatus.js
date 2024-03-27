@@ -38,21 +38,25 @@ const leadStatus = async (req, res, next) => {
         }
 
         if (amountClosed) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { amountClosed: amountClosed, modifiedOn: date, modifiedBy: userId } })
+            await leadModel.updateMany({ leadId: leadId }, { $set: { amountClosed: +amountClosed, modifiedOn: date, modifiedBy: userId } })
         }
 
         if (followUpDate) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { followUpDate: followUpDate, modifiedOn: date, modifiedBy: userId } })
+            const date = new Date(followUpDate).toISOString();
+            await leadModel.updateMany({ leadId: leadId }, { $set: { followUpDate: date, modifiedOn: date, modifiedBy: userId } })
         }
 
         if (closingDate) {
-            await leadModel.updateMany({ leadId: leadId }, { $set: { closingDate: closingDate, modifiedOn: date, modifiedBy: userId } })
+            const date = new Date(closingDate).toISOString();
+            await leadModel.updateMany({ leadId: leadId }, { $set: { closingDate: date, modifiedOn: date, modifiedBy: userId } })
         }
 
         if (leadStatus) {
             await leadModel.updateOne({ leadId: leadId }, { $set: { leadStatus: leadStatus, modifiedOn: date, modifiedBy: userId } });
-            
-            await leadModel.updateOne({ leadId: leadId }, { $set: { amountProposed: amountProposed, modifiedOn: date, modifiedBy: userId } });
+
+            if (amountProposed) {
+                await leadModel.updateOne({ leadId: leadId }, { $set: { amountProposed: +amountProposed, modifiedOn: date, modifiedBy: userId } });
+            }
 
             const findLeadTrack = await leadStatusTrack.findOne({ leadId: leadId });
 

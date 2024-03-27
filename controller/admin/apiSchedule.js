@@ -3,6 +3,7 @@ import axios from 'axios';
 import leadModel from '../../models/leadData.js';
 import formModel from '../../models/forms.js';
 import randomstring from 'randomstring';
+import sendNotification from '../../utils/firebase.js';
 
 const getLead = async () => {
     const pageAccessToken = process.env.PAGE_ACCESS_TOKEN;
@@ -67,7 +68,7 @@ const getLead = async () => {
         const findForm = await formModel.findOne({ formId: item?.id });
         const extractionDate = findForm?.extractionDate
         let url = `https://graph.facebook.com/v19.0/${item?.id}/leads`;
-        const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time, id", access_token: access_token } });
+        const response = await axios.get(url, { params: { fields: "leads, form_id, field_data, created_time,campaign_id,campaign_name, id", access_token: access_token } });
 
         const fieldData = response?.data;
         let LeadData = fieldData?.data
@@ -84,7 +85,9 @@ const getLead = async () => {
             const fieldData = response?.data;
             LeadData = fieldData?.data
             const filteredLeads = LeadData.filter(lead => lead.created_time >= extractionDate);
-            allLeads.push(filteredLeads)
+            if (LeadData?.length > 0) {
+                allLeads.push(filteredLeads)
+            }
             next = fieldData?.paging?.next;
         }
     }));
@@ -116,6 +119,8 @@ const getLead = async () => {
                         const leadObject = {
                             formId: leadData?.form_id,
                             leadId: +leadData?.id,
+                            campaignName: leadData?.campaign_name,
+                            campaignId: +leadData?.campaign_id,
                             created_time: leadData?.created_time,
                             data: fieldsWithIds?.map(field => ({
                                 fieldName: field?.fieldName,

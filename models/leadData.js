@@ -35,6 +35,14 @@ const lead = new mongoose.Schema({
         type: String,
         default: ""
     },
+    campaignId: {
+        type: Number,
+        default: ""
+    },
+    campaignName: {
+        type: String,
+        default: ""
+    },
     leadStatus: {
         type: String,
         default: ""
@@ -64,6 +72,10 @@ const lead = new mongoose.Schema({
         default: 0
     },
     amountProposed: {
+        type: Number,
+        default: 0
+    },
+    clientAmount: {
         type: Number,
         default: 0
     },
