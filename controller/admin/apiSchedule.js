@@ -147,7 +147,7 @@ const getLead = async () => {
 }
 
 
-cron.schedule('*/15 * * * *', async () => {
+cron.schedule('*/15 * * * * *', async () => {
     try {
         console.log('Running scheduled job...');
         // await getLead();
