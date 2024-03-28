@@ -200,6 +200,8 @@ const getTodayLeads = async (req, res, next) => {
                     campaignId: { $first: "$campaignId" },
                     amountNegotiated: { $first: "$amountNegotiated" },
                     amountProposed: { $first: "$amountProposed" },
+                    expectedClosingDate: { $first: "$expectedClosingDate" },
+                    expectedMeetingDate: { $first: "$expectedMeetingDate" },
                 }
             },
             {
@@ -222,7 +224,9 @@ const getTodayLeads = async (req, res, next) => {
                     closingDate: 1,
                     amountClosed: 1,
                     amountProposed: 1,
-                    amountNegotiated: 1
+                    amountNegotiated: 1,
+                    expectedMeetingDate: 1,
+                    expectedClosingDate: 1
                 }
             },
             {

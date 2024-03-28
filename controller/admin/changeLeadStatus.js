@@ -11,7 +11,7 @@ const leadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
-        const { owner, leadStatus, taskStatus, taskTitle, priority, taskDescription, activity, amountClosed, closingDate, followUpDate, deadline, amountProposed, amountNegotiated, expectedMeetingDate, notesTitle, notesDescription } = req.body
+        const { owner, leadStatus, taskStatus, taskTitle, priority, taskDescription, activity, amountClosed, closingDate, followUpDate, deadline, amountProposed, amountNegotiated, expectedMeetingDate, notesTitle, notesDescription, expectedClosingDate } = req.body
 
         if (!userId && !leadId) {
             return res.status(400).json({
@@ -69,6 +69,11 @@ const leadStatus = async (req, res, next) => {
                 await leadModel.updateOne({ leadId: leadId }, { $set: { expectedMeetingDate: expectedMeetingDate, modifiedOn: date, modifiedBy: userId } });
             }
 
+            if (expectedClosingDate) {
+                const date = new Date(expectedClosingDate).toISOString();
+                await leadModel.updateOne({ leadId: leadId }, { $set: { expectedClosingDate: expectedClosingDate, modifiedOn: date, modifiedBy: userId } });
+            }
+
             const findLeadTrack = await leadStatusTrack.findOne({ leadId: leadId });
 
             if (!findLeadTrack) {
@@ -95,7 +100,15 @@ const leadStatus = async (req, res, next) => {
 
         if (activity) {
             const findActivityStatus = await activityHistory.findOne({ leadId: leadId });
-            if (!findActivityStatus) {
+            if (findActivityStatus) {
+                const activityStatusObject = {
+                    owner: userId,
+                    activity: activity,
+                    time: date,
+                }
+                findActivityStatus.activityStatus.unshift(activityStatusObject);
+                await findActivityStatus.save();
+            } else {
                 const newActivityStatus = new activityHistory({
                     leadId: leadId,
                     activityStatus: [{
@@ -105,14 +118,6 @@ const leadStatus = async (req, res, next) => {
                     }]
                 })
                 await newActivityStatus.save();
-            } else {
-                const activityStatusObject = {
-                    owner: userId,
-                    activity: activity,
-                    time: date,
-                }
-                findActivityStatus.activityStatus.unshift(activityStatusObject);
-                await findActivityStatus.save();
             }
         }
 
@@ -123,17 +128,17 @@ const leadStatus = async (req, res, next) => {
                 assignedTo: owner || userId,
                 assignedBy: userId,
                 title: taskTitle,
-                description: taskDescription,
                 modifiedOn: date,
                 createdAt: date,
                 deadline: deadline,
                 taskStatus: taskStatus,
                 priority: priority,
+                description: taskDescription,
             })
             await newTask.save();
         }
 
-        if (notesTitle && notesDescription) {
+        if (notesTitle || notesDescription) {
             const findNote = await notesModel.findOne({ leadId: leadId });
 
             if (findNote) {

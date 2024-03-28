@@ -128,7 +128,9 @@ const getLeadDetails = async (req, res, next) => {
                     campaignId: 1,
                     campaignName: 1,
                     followUpDate: 1,
-                    amountProposed: 1
+                    amountProposed: 1,
+                    expectedClosingDate: 1,
+                    expectedMeetingDate: 1
                 }
             }
         );

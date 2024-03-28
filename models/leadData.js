@@ -83,6 +83,10 @@ const lead = new mongoose.Schema({
         type: String,
         default: ""
     },
+    expectedClosingDate: {
+        type: String,
+        default: ""
+    },
 }, {
     versionKey: false,
 })
