@@ -24,13 +24,95 @@ const searchResult = async (req, res, next) => {
             });
         }
 
-        const foundResult = await leadModel.filter({})
+        let pipeline = [];
+
+        if (hotelName) {
+            const regex = new RegExp(hotelName, 'i');
+
+            pipeline.push(
+                {
+                    $match: {
+                        $or: [
+                            {
+                                "data": {
+                                    $elemMatch: {
+                                        "fieldName": "your_hotel's_name",
+                                        "fieldValue": { $regex: regex }
+                                    }
+                                }
+                            },
+                            {
+                                "data": {
+                                    $elemMatch: {
+                                        "fieldName": "your_hotel_name",
+                                        "fieldValue": { $regex: regex }
+                                    }
+                                }
+                            }
+                        ]
+                    }
+                }
+            )
+        }
+
+        if (email) {
+            const regex = new RegExp(email, 'i');
+
+            pipeline.push(
+                {
+                    $match: {
+                        "data": {
+                            $elemMatch: {
+                                "fieldName": "email",
+                                "fieldValue": { $regex: regex }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        if (mobileNo) {
+            const regex = new RegExp(mobileNo, 'i');
+
+            pipeline.push(
+                {
+                    $match: {
+                        "data": {
+                            $elemMatch: {
+                                "fieldName": "phone_number",
+                                "fieldValue": { $regex: regex }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        if (fullName) {
+            const regex = new RegExp(fullName, 'i');
+
+            pipeline.push(
+                {
+                    $match: {
+                        "data": {
+                            $elemMatch: {
+                                "fieldName": "full_name",
+                                "fieldValue": { $regex: regex }
+                            }
+                        }
+                    }
+                }
+            )
+        }
+
+        const result = await leadModel.aggregate(pipeline)
 
         return res.status(200).json({
             status: true,
             code: 200,
             message: "Data fetched successfully",
-            data: foundResult
+            data: result
         });
 
     } catch (error) {

@@ -147,19 +147,7 @@ const getLead = async () => {
 }
 
 
-cron.schedule('*/3 * * * *', async () => {
-    try {
-        console.log('Running scheduled job...');
-        getLead();
-        console.log('Scheduled job completed.');
-    } catch (error) {
-        console.error('Error in scheduled job:', error);
-    }
-});
-
-// scheduled job for every 2 hours
-
-// cron.schedule('0 */2 * * *', async () => {
+// cron.schedule('*/3 * * * *', async () => {
 //     try {
 //         console.log('Running scheduled job...');
 //         getLead();
@@ -168,3 +156,15 @@ cron.schedule('*/3 * * * *', async () => {
 //         console.error('Error in scheduled job:', error);
 //     }
 // });
+
+// scheduled job for every 2 hours
+
+cron.schedule('0 */2 * * *', async () => {
+    try {
+        console.log('Running scheduled job...');
+        getLead();
+        console.log('Scheduled job completed.');
+    } catch (error) {
+        console.error('Error in scheduled job:', error);
+    }
+});

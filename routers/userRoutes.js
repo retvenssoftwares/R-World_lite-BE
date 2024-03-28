@@ -19,6 +19,7 @@ import getTeam from '../controller/admin/getTeam.js';
 import updateTaskStatus from '../controller/admin/updateTaskStatus.js';
 import assignLead from '../controller/admin/assignLead.js';
 import getMeetAndFollowUp from '../controller/admin/getMeetingAndFollowUp.js';
+import searchResult from '../controller/admin/searchLead.js';
 
 router.post('/login', login);
 router.get('/getLeadDataFromFB', getLeadDataFromFB);
@@ -36,5 +37,6 @@ router.get('/getTeam', verifyJwt, getTeam);
 router.post('/updateTaskStatus', verifyJwt, updateTaskStatus);
 router.post('/assignLead', verifyJwt, assignLead);
 router.get('/getMeetAndFollowUp', verifyJwt, getMeetAndFollowUp);
+router.get('/searchResult', verifyJwt, searchResult);
 
 export default router;
