@@ -32,24 +32,12 @@ const searchResult = async (req, res, next) => {
             pipeline.push(
                 {
                     $match: {
-                        $or: [
-                            {
-                                "data": {
-                                    $elemMatch: {
-                                        "fieldName": "your_hotel's_name",
-                                        "fieldValue": { $regex: regex }
-                                    }
-                                }
-                            },
-                            {
-                                "data": {
-                                    $elemMatch: {
-                                        "fieldName": "your_hotel_name",
-                                        "fieldValue": { $regex: regex }
-                                    }
-                                }
+                        "data": {
+                            $elemMatch: {
+                                "fieldName": { $in: ["your_hotel's_name", "your_hotel_name"] },
+                                "fieldValue": { $regex: regex }
                             }
-                        ]
+                        }
                     }
                 }
             )
