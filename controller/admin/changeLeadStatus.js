@@ -7,7 +7,7 @@ import activityHistory from "../../models/activityHistory.js";
 import leadStatusTrack from "../../models/leadStatusTrack.js";
 import notesModel from "../../models/notes.js";
 
-const leadStatus = async (req, res, next) => {
+const updateLeadStatus = async (req, res, next) => {
     try {
         const userId = req.authData.userId;
         const leadId = +req.query.leadId
@@ -181,4 +181,4 @@ const leadStatus = async (req, res, next) => {
     }
 }
 
-export default leadStatus;
+export default updateLeadStatus;
