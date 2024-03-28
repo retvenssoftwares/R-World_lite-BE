@@ -5,7 +5,6 @@ import leadModel from "../../models/leadData.js";
 const getMeetAndFollowUp = async (req, res, next) => {
     try {
         const userId = req.query.userId || req.authData.userId;
-        console.log('userId: ', userId);
         let date = req.query.date
         const type = req.query.type
 
@@ -35,7 +34,6 @@ const getMeetAndFollowUp = async (req, res, next) => {
         console.log('todayEnd: ', todayEnd);
 
         if (type === "meetings") {
-            console.log("vbnjkuygtfv");
             pipeline.push(
                 {
                     $match: {
@@ -45,7 +43,6 @@ const getMeetAndFollowUp = async (req, res, next) => {
                 }
             )
         } else {
-            console.log("hokjfcjf");
             pipeline.push(
                 {
                     $match: {
