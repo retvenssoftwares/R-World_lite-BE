@@ -37,7 +37,7 @@ const lead = new mongoose.Schema({
     },
     campaignId: {
         type: Number,
-        default: ""
+        default: 0
     },
     campaignName: {
         type: String,
@@ -86,6 +86,10 @@ const lead = new mongoose.Schema({
     expectedClosingDate: {
         type: String,
         default: ""
+    },
+    displayStatus: {
+        type: String,
+        default: "1"
     },
 }, {
     versionKey: false,

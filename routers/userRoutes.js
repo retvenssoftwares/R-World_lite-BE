@@ -20,6 +20,7 @@ import updateTaskStatus from '../controller/admin/updateTaskStatus.js';
 import assignLead from '../controller/admin/assignLead.js';
 import getMeetAndFollowUp from '../controller/admin/getMeetingAndFollowUp.js';
 import searchResult from '../controller/admin/searchLead.js';
+import addLeads from '../controller/admin/addLead.js';
 
 router.post('/login', login);
 router.get('/getLeadDataFromFB', getLeadDataFromFB);
@@ -38,5 +39,6 @@ router.post('/updateTaskStatus', verifyJwt, updateTaskStatus);
 router.post('/assignLead', verifyJwt, assignLead);
 router.get('/getMeetAndFollowUp', verifyJwt, getMeetAndFollowUp);
 router.get('/searchResult', verifyJwt, searchResult);
+router.post('/addLeads', verifyJwt, addLeads);
 
 export default router;
