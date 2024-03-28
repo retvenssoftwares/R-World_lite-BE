@@ -10,11 +10,11 @@ const notes = new mongoose.Schema({
             type: Number,
             default: 0
         },
-        tittle: {
+        notesTitle: {
             type: String,
             default: ""
         },
-        notes: {
+        notesDescription: {
             type: String,
             default: ""
         },

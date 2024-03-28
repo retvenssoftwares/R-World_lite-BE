@@ -127,13 +127,13 @@ const updateLeadStatus = async (req, res, next) => {
                 leadId: leadId,
                 assignedTo: owner || userId,
                 assignedBy: userId,
-                title: taskTitle,
+                taskTitle: taskTitle,
                 modifiedOn: date,
                 createdAt: date,
                 deadline: deadline,
                 taskStatus: taskStatus,
                 priority: priority,
-                description: taskDescription,
+                taskDescription: taskDescription,
             })
             await newTask.save();
         }
@@ -144,8 +144,8 @@ const updateLeadStatus = async (req, res, next) => {
             if (findNote) {
                 const notesObject = {
                     noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
-                    tittle: notesTitle,
-                    notes: notesDescription,
+                    notesTitle: notesTitle,
+                    notesDescription: notesDescription,
                     addedBy: userId,
                     time: date
                 }
@@ -156,8 +156,8 @@ const updateLeadStatus = async (req, res, next) => {
                     leadId: leadId,
                     notes: [{
                         noteId: Randomstring.generate({ charset: 'numeric', length: 6 }),
-                        tittle: notesTitle,
-                        notes: notesDescription,
+                        notesTitle: notesTitle,
+                        notesDescription: notesDescription,
                         addedBy: userId,
                         time: date
                     }]

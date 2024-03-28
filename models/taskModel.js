@@ -25,7 +25,7 @@ const task = new mongoose.Schema({
         type:String,
         default:""
     },
-    title:{
+    taskTitle:{
         type:String,
         default:"new Task"
     },
@@ -41,7 +41,7 @@ const task = new mongoose.Schema({
         type:String,
         default:"pending"
     },
-    description:{
+    taskDescription:{
         type:String,
         default:""
     }

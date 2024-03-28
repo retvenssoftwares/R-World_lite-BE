@@ -97,10 +97,10 @@ const getTask = async (req, res, next) => {
                         assignedTo: 1,
                         assignedBy: 1,
                         modifiedOn: 1,
-                        title: 1,
+                        taskTitle: 1,
                         priority: 1,
                         taskStatus: 1,
-                        description: 1,
+                        taskDescription: 1,
                     }
                 },
                 {
@@ -179,10 +179,10 @@ const getTask = async (req, res, next) => {
                         assignedTo: 1,
                         assignedBy: 1,
                         modifiedOn: 1,
-                        title: 1,
+                        taskTittle: 1,
                         priority: 1,
                         taskStatus: 1,
-                        description: 1,
+                        taskDescription: 1,
                     }
                 },
                 {
